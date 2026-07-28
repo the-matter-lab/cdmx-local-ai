@@ -1,0 +1,14 @@
+[Unit]
+Description=CDMX workshop network selection and fallback hotspot
+After=NetworkManager.service cdmx-personalize.service
+Wants=NetworkManager.service
+Before=cdmx-network-portal.service cdmx-desktop.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/cdmx-network boot
+RemainAfterExit=yes
+TimeoutStartSec=75
+
+[Install]
+WantedBy=multi-user.target

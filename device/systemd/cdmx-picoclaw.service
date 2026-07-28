@@ -1,0 +1,57 @@
+[Unit]
+Description=CDMX workshop PicoClaw agent
+Documentation=https://github.com/sipeed/picoclaw
+Wants=network-online.target
+After=network-online.target
+ConditionPathExists=/etc/cdmx-picoclaw/config.json
+ConditionPathExists=/etc/cdmx-picoclaw/.security.yml
+
+[Service]
+Type=simple
+User=cdmx-agent
+Group=cdmx-agent
+SupplementaryGroups=cdmx-workspace
+# Group-write inside the setgid shared workspace; other PicoClaw state keeps
+# its cdmx-agent primary group and is not readable by the desktop account.
+UMask=0007
+Environment=PICOCLAW_HOME=/var/lib/cdmx-picoclaw
+Environment=PICOCLAW_CONFIG=/etc/cdmx-picoclaw/config.json
+WorkingDirectory=/var/lib/cdmx-picoclaw/workspace
+ExecStart=/usr/bin/picoclaw gateway
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=20s
+
+# The agent needs outbound HTTPS/chat access and may write only its managed state.
+StateDirectory=cdmx-picoclaw
+StateDirectoryMode=0750
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+DevicePolicy=closed
+NoNewPrivileges=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+LockPersonality=true
+# Coding exercises may run Node/V8, which legitimately needs executable memory.
+# The service remains unprivileged and filesystem-confined instead.
+MemoryDenyWriteExecute=false
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectProc=invisible
+ProcSubset=pid
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+[Install]
+WantedBy=multi-user.target

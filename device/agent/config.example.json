@@ -1,0 +1,46 @@
+{
+  "version": 3,
+  "agents": {
+    "defaults": {
+      "workspace": "/var/lib/cdmx-picoclaw/workspace",
+      "restrict_to_workspace": true,
+      "allow_read_outside_workspace": false,
+      "model_name": "workshop"
+    }
+  },
+  "model_list": [
+    {
+      "model_name": "workshop",
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "enabled": true
+    }
+  ],
+  "channel_list": {
+    "telegram": {
+      "enabled": true,
+      "type": "telegram",
+      "allow_from": ["111111111", "222222222"],
+      "group_trigger": {"mention_only": true},
+      "settings": {}
+    },
+    "discord": {
+      "enabled": false,
+      "type": "discord",
+      "allow_from": [],
+      "group_trigger": {"mention_only": true},
+      "settings": {}
+    }
+  },
+  "gateway": {"host": "127.0.0.1", "port": 18790, "log_level": "info"},
+  "tools": {
+    "exec": {
+      "enabled": true,
+      "allow_remote": true,
+      "enable_deny_patterns": true,
+      "timeout_seconds": 120
+    },
+    "allow_read_paths": [],
+    "allow_write_paths": []
+  }
+}

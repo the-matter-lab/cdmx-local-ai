@@ -1,0 +1,3 @@
+# CDMX workshop first-boot file.
+# Wi-Fi is intentionally not configured in the image. Participants configure
+# the venue network after connecting over the local setup access point/USB.

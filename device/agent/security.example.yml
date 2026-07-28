@@ -1,0 +1,13 @@
+# Copying this file is not the recommended setup path; use cdmx-agent-setup.
+# These are deliberately invalid placeholders, not credentials.
+model_list:
+  workshop:
+    api_keys:
+      - "REPLACE_WITH_TEAM_API_OR_VIRTUAL_KEY"
+channel_list:
+  telegram:
+    settings:
+      token: "REPLACE_WITH_TELEGRAM_BOT_TOKEN"
+  discord:
+    settings:
+      token: "REPLACE_WITH_DISCORD_BOT_TOKEN"

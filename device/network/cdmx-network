@@ -1,0 +1,127 @@
+#!/bin/sh
+set -eu
+
+config=/etc/cdmx/workshop.conf
+ap_password_file=/etc/cdmx/ap-password
+
+fail() {
+    printf 'cdmx-network: %s\n' "$*" >&2
+    exit 1
+}
+
+config_value() {
+    key=$1
+    awk -F= -v key="$key" '$1 == key {sub(/^[^=]*=/, ""); print; exit}' "$config"
+}
+
+validate_config() {
+    [ -r "$config" ] || fail "missing $config"
+    TEAM=$(config_value TEAM)
+    case "$TEAM" in
+        1|2|3|4|5|6|7|8|9|10) ;;
+        *) fail "TEAM must be between 1 and 10" ;;
+    esac
+    AP_SSID=$(config_value AP_SSID)
+    [ "$AP_SSID" = "equipo${TEAM}-setup" ] || fail "invalid AP_SSID"
+    AP_ADDRESS="10.42.${TEAM}.1/24"
+}
+
+wifi_interface() {
+    nmcli -t -f DEVICE,TYPE device status |
+        awk -F: '$2 == "wifi" {print $1; exit}'
+}
+
+connection_active() {
+    name=$1
+    nmcli -t -f NAME connection show --active 2>/dev/null |
+        grep -Fxq "$name"
+}
+
+write_ap_profile() {
+    iface=$1
+    password=$(tr -d '\r\n' < "$ap_password_file")
+    uuid=$(cat /proc/sys/kernel/random/uuid)
+    case "$password" in
+        *[![:print:]]*) fail "AP password contains unsupported characters" ;;
+    esac
+    [ "${#password}" -ge 8 ] && [ "${#password}" -le 63 ] ||
+        fail "AP password must contain 8-63 printable characters"
+
+    install -d -m 0700 /etc/NetworkManager/system-connections
+    nmcli connection delete cdmx-setup >/dev/null 2>&1 || true
+    umask 077
+    profile=/etc/NetworkManager/system-connections/cdmx-setup.nmconnection
+    {
+        printf '%s\n' '[connection]'
+        printf 'id=cdmx-setup\n'
+        printf 'uuid=%s\n' "$uuid"
+        printf 'type=wifi\n'
+        printf 'interface-name=%s\n' "$iface"
+        printf 'autoconnect=false\n\n'
+        printf '%s\n' '[wifi]'
+        printf 'mode=ap\n'
+        printf 'band=bg\n'
+        printf 'channel=%s\n' "$(( (TEAM - 1) % 3 == 0 ? 1 : (TEAM - 1) % 3 == 1 ? 6 : 11 ))"
+        printf 'ssid=%s\n\n' "$AP_SSID"
+        printf '%s\n' '[wifi-security]'
+        printf 'key-mgmt=wpa-psk\n'
+        printf 'pmf=1\n'
+        printf 'psk=%s\n\n' "$password"
+        printf '%s\n' '[ipv4]'
+        printf 'address1=%s\n' "$AP_ADDRESS"
+        printf 'method=shared\n\n'
+        printf '%s\n' '[ipv6]'
+        printf 'method=disabled\n'
+    } > "$profile"
+    chmod 0600 "$profile"
+    nmcli connection reload
+}
+
+start_ap() {
+    validate_config
+    [ -r "$ap_password_file" ] || fail "missing $ap_password_file"
+    iface=$(wifi_interface)
+    [ -n "$iface" ] || fail "no Wi-Fi interface found"
+    rfkill unblock wifi 2>/dev/null || true
+    nmcli radio wifi on
+    nmcli connection down cdmx-venue >/dev/null 2>&1 || true
+    write_ap_profile "$iface"
+    nmcli --wait 30 connection up cdmx-setup
+    printf 'Setup AP ready: %s at http://10.42.%s.1:8080/\n' "$AP_SSID" "$TEAM"
+}
+
+try_venue() {
+    validate_config
+    nmcli connection show cdmx-venue >/dev/null 2>&1 || return 1
+    nmcli connection down cdmx-setup >/dev/null 2>&1 || true
+    nmcli --wait 35 connection up cdmx-venue >/dev/null 2>&1 || return 1
+    connection_active cdmx-venue
+}
+
+reset_network() {
+    nmcli connection delete cdmx-venue >/dev/null 2>&1 || true
+    start_ap
+}
+
+status() {
+    validate_config
+    printf 'hostname=%s\n' "$(hostname)"
+    printf 'team=%s\n' "$TEAM"
+    printf 'setup_ssid=%s\n' "$AP_SSID"
+    nmcli -t -f DEVICE,TYPE,STATE,CONNECTION device status
+}
+
+case "${1:-boot}" in
+    boot)
+        if try_venue; then
+            printf 'Connected to saved venue Wi-Fi.\n'
+        else
+            start_ap
+        fi
+        ;;
+    ap) start_ap ;;
+    venue) try_venue || fail "saved venue Wi-Fi unavailable" ;;
+    reset) reset_network ;;
+    status) status ;;
+    *) fail "usage: cdmx-network {boot|ap|venue|reset|status}" ;;
+esac

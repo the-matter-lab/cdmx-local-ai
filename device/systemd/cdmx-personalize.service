@@ -1,0 +1,12 @@
+[Unit]
+Description=Apply CDMX team identity from the SD config partition
+After=local-fs.target
+Before=NetworkManager.service ssh.service avahi-daemon.service cdmx-network.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/cdmx-personalize
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

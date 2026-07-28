@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_config xmlns="http://openbox.org/3.4/rc">
+  <focus><focusNew>yes</focusNew><followMouse>no</followMouse></focus>
+  <desktops><number>1</number></desktops>
+  <applications>
+    <application title="System Status">
+      <decor>no</decor><layer>above</layer>
+      <position force="yes"><x>0</x><y>0</y></position>
+      <size><width>1280</width><height>52</height></size>
+    </application>
+    <application title="Pi Agent">
+      <position force="yes"><x>0</x><y>52</y></position>
+      <size><width>640</width><height>332</height></size>
+    </application>
+    <application title="Channel + Workspace">
+      <position force="yes"><x>0</x><y>384</y></position>
+      <size><width>640</width><height>336</height></size>
+    </application>
+    <application title="Bayesian Optimization">
+      <position force="yes"><x>640</x><y>52</y></position>
+      <size><width>640</width><height>668</height></size>
+    </application>
+  </applications>
+  <keyboard>
+    <keybind key="A-F4"><action name="Close"/></keybind>
+  </keyboard>
+</openbox_config>

@@ -1,0 +1,38 @@
+[Unit]
+Description=CDMX shared TigerVNC workshop desktop
+After=local-fs.target cdmx-demo.service
+Wants=cdmx-demo.service
+StartLimitIntervalSec=60
+StartLimitBurst=10
+
+[Service]
+Type=simple
+User=cdmx
+Group=cdmx
+Environment=CDMX_ROOT=/opt/cdmx-local-ai
+Environment=DISPLAY_NUMBER=1
+Environment=VNC_PASSWORD_FILE=/etc/cdmx-local-ai/vnc.passwd
+WorkingDirectory=/var/lib/cdmx-picoclaw/workspace
+ExecStart=/opt/cdmx-local-ai/device/desktop/start-session.sh
+Restart=on-failure
+RestartSec=3
+RuntimeDirectory=cdmx-desktop
+UMask=0077
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/cdmx/.pi /var/lib/cdmx-picoclaw/workspace
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=384M
+
+[Install]
+WantedBy=multi-user.target

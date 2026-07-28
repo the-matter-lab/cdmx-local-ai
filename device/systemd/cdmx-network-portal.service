@@ -1,0 +1,27 @@
+[Unit]
+Description=CDMX local Wi-Fi onboarding portal
+After=NetworkManager.service cdmx-personalize.service
+Wants=NetworkManager.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/lib/cdmx/network_portal.py
+Restart=on-failure
+RestartSec=3
+User=root
+Group=root
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+RestrictRealtime=yes
+ReadWritePaths=/run/cdmx
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+
+[Install]
+WantedBy=multi-user.target
