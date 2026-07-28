@@ -1,8 +1,8 @@
-# Team workspace
+# Espacio de trabajo del equipo
 
-This is the only directory the chat-connected PicoClaw agent may read, write, or use for commands. Put the team's cloned repository here.
+Este es el único directorio que el agente PicoClaw conectado al chat puede leer, modificar o usar para ejecutar comandos. Coloca aquí el repositorio clonado del equipo.
 
-Useful commands:
+Comandos útiles:
 
 ```bash
 pi
@@ -10,4 +10,4 @@ git status
 systemctl status cdmx-picoclaw.service
 ```
 
-Do not save API keys or Telegram/Discord bot tokens here. An instructor configures those separately under `/etc/cdmx-picoclaw`.
+No guardes aquí claves de API ni tokens de bots de Telegram o Discord. Un instructor configura esos valores por separado en `/etc/cdmx-picoclaw`.

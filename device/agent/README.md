@@ -1,20 +1,20 @@
-# Workshop agent and chat channels
+# Agente del taller y canales de chat
 
-This bundle installs PicoClaw v0.3.1 for arm64, the Pi coding agent, and a locked-down service account. No real credentials belong in this repository. Every board gets a different API key (or LiteLLM virtual key) and its own Telegram bot token during workshop preparation.
+Este paquete instala PicoClaw v0.3.1 para arm64, el agente de programación Pi y una cuenta de servicio restringida. Este repositorio no debe contener credenciales reales. Durante la preparación del taller, cada tarjeta recibe una clave de API distinta (o una clave virtual de LiteLLM) y su propio token de bot de Telegram.
 
-## Install
+## Instalación
 
-On the Radxa, from the repository root:
+En la Radxa, desde la raíz del repositorio:
 
 ```bash
 sudo device/agent/install-agent.sh
 ```
 
-The installer verifies both the pinned upstream release checksum manifest and the pinned `picoclaw_aarch64.deb` digest before installation. It also installs a verified official Node 22 arm64 runtime and `@earendil-works/pi-coding-agent` 0.82.1. The service is installed but is not started until credentials and a non-empty allowlist exist.
+Antes de instalar, el instalador verifica tanto el manifiesto fijado de sumas de comprobación de la versión oficial como el resumen fijado de `picoclaw_aarch64.deb`. También instala un entorno de ejecución oficial y verificado de Node 22 para arm64 y `@earendil-works/pi-coding-agent` 0.82.1. El servicio queda instalado, pero no se inicia hasta que existan credenciales y una lista de usuarios permitidos que no esté vacía.
 
-## Configure one team (Telegram first)
+## Configuración de un equipo (primero Telegram)
 
-Find each participant's numeric Telegram user ID, then supply one to five IDs. Secrets are hidden prompts and do not enter shell history or the process list:
+Busca el identificador numérico de usuario de Telegram de cada participante y proporciona de uno a cinco identificadores. Los secretos se solicitan mediante entradas ocultas y no se guardan en el historial del shell ni aparecen en la lista de procesos:
 
 ```bash
 sudo cdmx-agent-setup \
@@ -27,7 +27,7 @@ sudo cdmx-agent-setup \
   --telegram-user 555555555
 ```
 
-For a LiteLLM proxy, the model is the proxy's alias and the prompted value is that board's virtual key:
+Para un proxy de LiteLLM, el modelo es el alias configurado en el proxy y el valor solicitado es la clave virtual de esa tarjeta:
 
 ```bash
 sudo cdmx-agent-setup \
@@ -37,7 +37,7 @@ sudo cdmx-agent-setup \
   --telegram-user 111111111
 ```
 
-Discord is opt-in. Enable the Discord developer portal's Message Content Intent, then add its allowed users separately:
+Discord es opcional. Activa *Message Content Intent* en el portal para desarrolladores de Discord y después agrega por separado los usuarios permitidos:
 
 ```bash
 sudo cdmx-agent-setup \
@@ -46,26 +46,26 @@ sudo cdmx-agent-setup \
   --discord-user 999999999999999999
 ```
 
-For automated imaging, put each secret in a separate root-only (`chmod 600`) file and pass `--api-key-file`, `--telegram-token-file`, and optionally `--discord-token-file`. Alternatively, `--from-env` reads `OPENAI_API_KEY` or `LITELLM_VIRTUAL_KEY`, `LITELLM_API_BASE`, plus `TELEGRAM_BOT_TOKEN` and optional `DISCORD_BOT_TOKEN`; unset those variables immediately afterward. File or hidden-prompt input is preferred.
+Para automatizar la creación de imágenes, guarda cada secreto en un archivo separado, accesible únicamente por root (`chmod 600`), y pasa `--api-key-file`, `--telegram-token-file` y, de manera opcional, `--discord-token-file`. Como alternativa, `--from-env` lee `OPENAI_API_KEY` o `LITELLM_VIRTUAL_KEY`, `LITELLM_API_BASE`, además de `TELEGRAM_BOT_TOKEN` y el valor opcional `DISCORD_BOT_TOKEN`; elimina esas variables del entorno inmediatamente después. Se recomienda proporcionar los valores mediante archivos o entradas ocultas.
 
-If using environment input through `sudo`, explicitly preserve only the variables needed, for example:
+Si proporcionas los valores del entorno mediante `sudo`, conserva explícitamente solo las variables necesarias. Por ejemplo:
 
 ```bash
 sudo --preserve-env=OPENAI_API_KEY,TELEGRAM_BOT_TOKEN \
   cdmx-agent-setup --from-env --telegram-user 111111111
 ```
 
-Reconfiguration refuses to overwrite existing credentials unless `--force` is supplied. Use `--no-start` when preparing an offline image.
+La reconfiguración se negará a sobrescribir credenciales existentes a menos que se indique `--force`. Usa `--no-start` cuando prepares una imagen sin conexión.
 
-## Security boundaries
+## Límites de seguridad
 
-- Telegram and Discord never accept an empty allowlist; each accepts at most five explicit numeric user IDs.
-- Remote command execution is enabled because coding is the exercise, but PicoClaw v0.3.1 restricts paths to `/var/lib/cdmx-picoclaw/workspace` and keeps its dangerous-command filter enabled.
-- The service runs as the non-login `cdmx-agent` user with no capabilities, a read-only operating system, private devices and temporary directory, and multiple kernel/system-call protections.
-- Only PicoClaw state/workspace is writable. Configuration is root-owned; secrets are `root:cdmx-agent` mode `0640`. The noVNC `cdmx` user shares the setgid workspace through a separate `cdmx-workspace` group and cannot read the secret file.
-- The gateway listens only on loopback. Telegram and Discord use outbound connections, so no PicoClaw port needs to be exposed on the LAN.
+- Telegram y Discord nunca aceptan una lista de usuarios permitidos vacía; cada uno admite como máximo cinco identificadores numéricos de usuario definidos explícitamente.
+- La ejecución remota de comandos está habilitada porque programar forma parte del ejercicio, pero PicoClaw v0.3.1 restringe las rutas a `/var/lib/cdmx-picoclaw/workspace` y mantiene activado su filtro de comandos peligrosos.
+- El servicio se ejecuta como el usuario sin inicio de sesión `cdmx-agent`, sin capacidades, con el sistema operativo en modo de solo lectura, dispositivos y directorio temporal privados, y varias protecciones del kernel y de llamadas al sistema.
+- Solo se puede escribir en el estado y el espacio de trabajo de PicoClaw. La configuración pertenece a root; los secretos usan el propietario y grupo `root:cdmx-agent` y el modo `0640`. El usuario `cdmx` de noVNC comparte el espacio de trabajo con setgid mediante el grupo independiente `cdmx-workspace` y no puede leer el archivo de secretos.
+- La puerta de enlace escucha únicamente en la interfaz de bucle local. Telegram y Discord usan conexiones salientes, por lo que no es necesario exponer ningún puerto de PicoClaw en la red LAN.
 
-Useful checks:
+Comprobaciones útiles:
 
 ```bash
 sudo systemctl status cdmx-picoclaw.service
@@ -74,7 +74,7 @@ sudo -u cdmx-agent picoclaw --version
 pi --version
 ```
 
-Run the local generator tests with:
+Ejecuta las pruebas locales del generador con:
 
 ```bash
 python3 -m unittest discover -s device/agent/tests -v

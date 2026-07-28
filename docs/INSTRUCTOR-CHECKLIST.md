@@ -1,55 +1,67 @@
-# Instructor checklist
+# Lista de verificación para el instructor
 
-## Two weeks before
+## Dos semanas antes
 
-- Confirm all ten boards are ZERO 3W 1 GB and all cards are the same model and
-  byte capacity.
-- Use 5V/2A-or-better supplies and test the exact power cables. The ZERO 3 only
-  accepts 5V input.
-- Build, sanitize, capture, and read-back verify the golden image.
-- Flash `equipo1` through `equipo10`; never boot two cards with the same number.
-- Boot every card twice, including one deliberate unplug/replug test after all
-  writes have settled.
-- Verify `.local`, SSH, Samba write/delete, controller noVNC, view-only noVNC,
-  Bayesian demo, zram, and setup AP recovery.
-- If using USB rescue, enable the Radxa OTG peripheral overlay and NCM service
-  on the master, then test macOS and Windows hosts.
+- Confirme que las diez placas sean ZERO 3W de 1 GB y que todas las tarjetas SD
+  sean del mismo modelo y tengan la misma capacidad en bytes.
+- Use fuentes de alimentación de 5 V/2 A o superiores y pruebe los cables de
+  alimentación exactos. La ZERO 3 solo acepta una entrada de 5 V.
+- Construya, limpie, capture y verifique mediante lectura la imagen maestra.
+- Grabe `equipo1` a `equipo10`; nunca arranque dos tarjetas con el mismo número.
+- Arranque cada tarjeta dos veces, incluida una prueba intencional de desconexión
+  y reconexión después de que hayan terminado todas las escrituras.
+- Verifique `.local`, SSH, escritura y borrado en Samba, noVNC de control, noVNC
+  de solo lectura, la demostración bayesiana, zram y la recuperación del punto
+  de acceso de configuración.
+- Si usará el rescate por USB, active en la maestra la superposición de
+  periférico OTG de Radxa y el servicio NCM, y después haga pruebas con equipos
+  macOS y Windows.
 
-## Credentials to prepare
+## Credenciales que debe preparar
 
-- One local workshop password for Linux/Samba/setup AP/noVNC. Print it on the
-  team card; do not reuse a personal password.
-- Ten OpenAI project keys or, preferably, ten budgeted LiteLLM virtual keys.
-- Ten Telegram bots, one per team. Record each token in an offline instructor
-  secret sheet and configure one team group per bot.
-- One to five numeric Telegram user IDs per team. Do not use a wildcard or an
-  empty allowlist.
-- Optional Discord app/bot per team with Message Content Intent enabled.
+- Una contraseña local del taller para Linux, Samba, el punto de acceso de
+  configuración y noVNC. Imprímala en la tarjeta informativa del equipo; no
+  reutilice una contraseña personal.
+- Diez claves de proyecto de OpenAI o, preferentemente, diez claves virtuales de
+  LiteLLM con presupuesto limitado.
+- Diez bots de Telegram, uno por equipo. Registre cada token en una hoja de
+  secretos del instructor sin conexión y configure un grupo de equipo por bot.
+- De uno a cinco identificadores numéricos de usuario de Telegram por equipo.
+  No use un comodín ni una lista de usuarios autorizados vacía.
+- Opcional: una aplicación o bot de Discord por equipo con Message Content
+  Intent habilitado.
 
-Inject API/channel credentials only after flashing each clone. Never add them
-to the golden card or repository.
+Inyecte las credenciales de la API y del canal únicamente después de grabar cada
+clon. Nunca las agregue a la tarjeta maestra ni al repositorio.
 
-## Venue network rehearsal
+## Ensayo de la red del recinto
 
-- Prefer a dedicated workshop router/AP sized for roughly 60 clients (ten
-  boards plus participant devices). Verify DHCP capacity and client-to-client
-  traffic.
-- If using venue Wi-Fi, explicitly ask whether multicast/mDNS and peer traffic
-  are blocked. A successful Internet connection does not prove noVNC will work.
-- Keep SSID/password ready for the onboarding page, but do not bake them into
-  the cards.
-- Record DHCP leases/IPs as a fallback when `.local` is unavailable.
+- Prefiera un router o punto de acceso exclusivo para el taller, dimensionado
+  para aproximadamente 60 clientes (diez placas más los dispositivos de los
+  participantes). Verifique la capacidad de DHCP y el tráfico entre clientes.
+- Si usará el Wi-Fi del recinto, pregunte explícitamente si están bloqueados el
+  tráfico multicast/mDNS y el tráfico entre dispositivos. Una conexión exitosa
+  a Internet no demuestra que noVNC vaya a funcionar.
+- Tenga listos el SSID y la contraseña para la página de configuración, pero no
+  los incorpore en las tarjetas.
+- Registre las concesiones o direcciones IP de DHCP como alternativa cuando
+  `.local` no esté disponible.
 
-## Day of
+## El día del taller
 
-1. Power boards in batches and check `equipoN-setup` or the saved network.
-2. Open each noVNC view-only link from the instructor laptop.
-3. Run `systemctl --failed` and `free -h` over SSH.
-4. Configure/test the team bot before handing out its QR/invite.
-5. Designate one noVNC controller per team; everyone else uses view-only.
-6. Keep two pre-flashed spare cards and at least one spare board/power supply.
+1. Encienda las placas por grupos y compruebe `equipoN-setup` o la red
+   guardada.
+2. Abra desde la laptop del instructor el enlace noVNC de solo lectura de cada
+   equipo.
+3. Ejecute `systemctl --failed` y `free -h` mediante SSH.
+4. Configure y pruebe el bot del equipo antes de entregar su código QR o
+   invitación.
+5. Designe un controlador noVNC por equipo; todos los demás deben usar el
+   enlace de solo lectura.
+6. Tenga preparadas dos tarjetas SD de repuesto ya grabadas y al menos una
+   placa Radxa y una fuente de alimentación de repuesto.
 
-## Recovery commands
+## Comandos de recuperación
 
 ```bash
 sudo cdmx-network status

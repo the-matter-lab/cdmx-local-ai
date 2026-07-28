@@ -1,27 +1,30 @@
-# Workshop card workflow
+# Flujo de trabajo para las tarjetas del taller
 
-Run these commands from the repository root. Every write requires the exact
-confirmation phrase printed by the script. Neither Wi-Fi credentials nor API
-keys belong in the golden image.
+Ejecuta estos comandos desde la raíz del repositorio. Cada escritura requiere
+la frase de confirmación exacta que muestra el script. La imagen maestra no debe
+contener credenciales de Wi-Fi ni claves de API.
 
-1. List removable disks with `./host/list-disks.sh`.
-2. Download and verify the pinned Radxa image with
+1. Enumera los discos extraíbles con `./host/list-disks.sh`.
+2. Descarga y verifica la imagen fijada de Radxa con
    `./host/download-stock-image.sh`.
-3. Make the stock master with
+3. Crea la tarjeta maestra original con
    `./host/flash-stock.sh --disk /dev/DISK`.
-4. Boot that card in one ZERO 3W, install the workshop stack with the on-device
-   installer, test it, remove all credentials/history, and shut down cleanly.
-5. Put the master card back in the host and run
+4. Arranca esa tarjeta en una ZERO 3W, instala el conjunto de herramientas del
+   taller con el instalador del dispositivo, pruébalo, elimina todas las
+   credenciales y el historial, y apaga el equipo correctamente.
+5. Vuelve a insertar la tarjeta maestra en la computadora anfitriona y ejecuta
    `./host/capture-golden.sh --source /dev/DISK`.
-6. For each new card, run
-   `./host/flash-team.sh --team N --disk /dev/DISK`, where `N` is 1 through 10.
+6. Para cada tarjeta nueva, ejecuta
+   `./host/flash-team.sh --team N --disk /dev/DISK`, donde `N` va de 1 a 10.
 
-The final command verifies the compressed golden image, writes it, reads the
-written bytes back, and only then writes `before.txt` plus `cdmx-team.env` to
-the FAT `config` partition. The marker assigns `equipoN`; the on-device first
-boot service consumes it. Wi-Fi remains unset so the venue credentials can be
-entered locally after boot.
+El último comando verifica la imagen maestra comprimida, la escribe, vuelve a
+leer los bytes escritos y solo entonces escribe `before.txt` y
+`cdmx-team.env` en la partición FAT `config`. El marcador asigna `equipoN`; el
+servicio de primer arranque del dispositivo lo procesa. La configuración de
+Wi-Fi queda vacía para que las credenciales del lugar puedan ingresarse
+localmente después del arranque.
 
-Golden capture is a full-device image. Target cards must therefore be at least
-as large in bytes as the master card, even when both cards have the same
-advertised capacity. Use one card model/batch for the master and all copies.
+La captura maestra es una imagen del dispositivo completo. Por lo tanto, las
+tarjetas de destino deben tener como mínimo el mismo tamaño en bytes que la
+tarjeta maestra, aunque ambas anuncien la misma capacidad. Usa el mismo modelo
+y lote de tarjetas para la maestra y todas las copias.

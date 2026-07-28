@@ -1,41 +1,47 @@
-# CDMX Local AI workshop kit
+# Kit para el taller CDMX Local AI
 
-Reproducible setup for ten 1 GB Radxa ZERO 3W boards. Each board boots as
-`equipo1` through `equipo10`, works without a keyboard after the master image is
-built, offers a shared noVNC desktop, and can run a workspace-restricted coding
-agent from Telegram or Discord.
+Configuración reproducible para diez placas Radxa ZERO 3W de 1 GB. Cada placa
+arranca como `equipo1` a `equipo10`, funciona sin teclado una vez
+construida la imagen maestra, ofrece un escritorio noVNC compartido y puede
+ejecutar desde Telegram o Discord un agente de programación restringido al
+espacio de trabajo.
 
-This repository contains all source, configuration, checks, and operating
-instructions. Multi-gigabyte SD image artifacts and credentials are generated
-locally and are intentionally not committed.
+Este repositorio contiene todo el código fuente, la configuración, las
+verificaciones y las instrucciones de operación. Las imágenes de tarjetas SD,
+que ocupan varios gigabytes, y las credenciales se generan localmente y no se
+incluyen intencionalmente en el repositorio.
 
-## What participants get
+## Lo que tendrán los participantes
 
-- `http://equipoN.local:6080/control.html` — one active noVNC controller.
-- `http://equipoN.local:6080/view.html` — shared view-only link for teammates.
-- `ssh cdmx@equipoN.local` — terminal access on the same LAN.
-- `smb://equipoN.local/workspace` — writable shared code folder.
-- A 1280×720 Openbox desktop with a Pi terminal, channel/workspace activity,
-  CPU/RAM/temperature status, and a live 2-D Bayesian-optimization demo.
-- PicoClaw as the Telegram-first channel agent; Discord is optional.
-- Pi as an optional local interactive coding agent.
+- `http://equipoN.local:6080/control.html` — un controlador noVNC activo.
+- `http://equipoN.local:6080/view.html` — enlace compartido de solo lectura para
+  el resto del equipo.
+- `ssh cdmx@equipoN.local` — acceso por terminal desde la misma red LAN.
+- `smb://equipoN.local/workspace` — carpeta de código compartida y con permisos
+  de escritura.
+- Un escritorio Openbox de 1280×720 con una terminal Pi, actividad del canal y
+  del espacio de trabajo, estado de CPU/RAM/temperatura y una demostración en
+  vivo de optimización bayesiana en 2D.
+- PicoClaw como agente principal del canal de Telegram; Discord es opcional.
+- Pi como agente de programación interactivo local opcional.
 
-One shared desktop is deliberate. Five graphical sessions plus agents do not
-fit comfortably in 1 GB; one person controls while the other four watch and
-prompt through the team channel.
+El uso de un solo escritorio compartido es intencional. Cinco sesiones gráficas
+más los agentes no caben cómodamente en 1 GB; una persona controla el escritorio
+mientras las otras cuatro observan y envían instrucciones por el canal del
+equipo.
 
-## Operating system
+## Sistema operativo
 
-The image pin is Radxa's fully-tested ZERO 3 RadxaOS image: Debian 12 Bookworm
-arm64, kernel 6.1, release `rsdk-b1`. The stock KDE packages remain available
-for recovery, but the workshop runs Openbox to conserve memory. The exact URL
-and published SHA-512 are in
-[`image/radxa-zero3-bookworm-kde-rsdk-b1.env`](image/radxa-zero3-bookworm-kde-rsdk-b1.env).
+La imagen fijada es la imagen de RadxaOS para ZERO 3 que Radxa ha probado por
+completo: Debian 12 Bookworm arm64, kernel 6.1, versión `rsdk-b1`. Los paquetes
+KDE originales permanecen disponibles para recuperación, pero durante el taller
+se usa Openbox para ahorrar memoria. La URL exacta y el SHA-512 publicado están
+en [`image/radxa-zero3-bookworm-kde-rsdk-b1.env`](image/radxa-zero3-bookworm-kde-rsdk-b1.env).
 
-## Build the ten cards
+## Preparar las diez tarjetas
 
-Use the same make/model/capacity SD card for the master and all copies. On the
-Mac or Linux preparation computer:
+Use tarjetas SD de la misma marca, modelo y capacidad para la maestra y todas
+las copias. En la computadora Mac o Linux que se usará para prepararlas:
 
 ```bash
 ./host/list-disks.sh
@@ -43,9 +49,9 @@ Mac or Linux preparation computer:
 ./host/flash-stock.sh --disk /dev/DISK
 ```
 
-Boot that one stock card in a ZERO 3W. This is the only stage that may require
-HDMI/keyboard long enough to join preparation Wi-Fi. Clone this repository on
-the board, then run:
+Arranque una ZERO 3W con esa tarjeta original. Esta es la única etapa que puede
+requerir HDMI y teclado durante el tiempo necesario para conectarse a la red
+Wi-Fi de preparación. Clone este repositorio en la placa y después ejecute:
 
 ```bash
 cd cdmx-local-ai
@@ -53,57 +59,63 @@ sudo ./device/install.sh --team 1
 sudo reboot
 ```
 
-Test SSH, Samba, noVNC, the setup hotspot, and a full power cycle. Do **not**
-put API keys or bot tokens on the master. Sanitize and power it off:
+Pruebe SSH, Samba, noVNC, el punto de acceso de configuración y un ciclo
+completo de apagado y encendido. **No** coloque claves de API ni tokens de bots
+en la tarjeta maestra. Límpiela y apáguela:
 
 ```bash
 sudo cdmx-prepare-master --yes-really-power-off
 ```
 
-Put it back in the preparation computer, capture it, and flash each team card:
+Vuelva a insertarla en la computadora de preparación, capture su imagen y
+grabe la tarjeta de cada equipo:
 
 ```bash
 ./host/capture-golden.sh --source /dev/DISK
 ./host/flash-team.sh --team 1 --disk /dev/DISK
-# repeat with --team 2 ... --team 10
+# repita con --team 2 ... --team 10
 ```
 
-Every destructive command displays the selected disk and requires an exact
-confirmation. It verifies both the downloaded/compressed image and the bytes
-read back from each finished SD card. See [host/WORKFLOW.md](host/WORKFLOW.md)
-for the detailed operator procedure.
+Cada comando destructivo muestra el disco seleccionado y exige una confirmación
+exacta. Además, verifica tanto la imagen descargada/comprimida como los bytes
+leídos de cada tarjeta SD terminada. Consulte [host/WORKFLOW.md](host/WORKFLOW.md)
+para ver el procedimiento detallado del operador.
 
-## Network setup without knowing venue Wi-Fi
+## Configuración de red sin conocer el Wi-Fi del recinto
 
-With no saved venue connection, `equipoN` creates the WPA2 setup hotspot
-`equipoN-setup` at `10.42.N.1`. Join it using the local workshop password set
-while installing the master, then open:
+Si no hay una conexión guardada para el recinto, `equipoN` crea el punto de
+acceso WPA2 de configuración `equipoN-setup` en `10.42.N.1`. Conéctese usando la
+contraseña local del taller definida al instalar la tarjeta maestra y abra:
 
 ```text
 http://10.42.N.1:8080/
 ```
 
-The page scans for Wi-Fi and saves the submitted credentials directly in
-NetworkManager. It never writes them to this repository or application logs.
-After the board switches networks, reconnect the phone/laptop to venue Wi-Fi
-and use `equipoN.local`.
+La página busca redes Wi-Fi y guarda las credenciales enviadas directamente en
+NetworkManager. Nunca las escribe en este repositorio ni en los registros de la
+aplicación. Después de que la placa cambie de red, vuelva a conectar el
+teléfono o la laptop al Wi-Fi del recinto y use `equipoN.local`.
 
-The ZERO 3W has one Wi-Fi radio, so the setup AP and venue client connection
-are not assumed to run concurrently. If the venue network isolates clients,
-participants will not reach local noVNC even though Telegram works. For a
-50-person workshop, the reliable solution is a dedicated workshop router/AP;
-the per-board hotspot is onboarding/recovery, not a substitute for routed Wi-Fi.
+La ZERO 3W tiene un solo radio Wi-Fi, por lo que no se presupone que el punto de
+acceso de configuración y la conexión cliente al recinto funcionen al mismo
+tiempo. Si la red del recinto aísla a los clientes, los participantes no podrán
+acceder al noVNC local aunque Telegram sí funcione. Para un taller de 50
+personas, la solución confiable es un router o punto de acceso exclusivo para el
+taller; el punto de acceso de cada placa sirve para incorporación y
+recuperación, no para sustituir una red Wi-Fi enrutada.
 
-USB-C NCM can be a rescue route after enabling **OTG peripheral mode** and the
-`radxa-ncm@*.*` service with Radxa `rsetup` on the master. When `usb0` exists,
-the board offers `10.55.N.1`. Test the exact cables, hubs, macOS, and Windows
-laptops before the event; do not assume every laptop port can power a board
-reliably.
+USB-C NCM puede servir como ruta de rescate después de activar el **modo de
+periférico OTG** y el servicio `radxa-ncm@*.*` mediante `rsetup` de Radxa en la
+tarjeta maestra. Cuando existe `usb0`, la placa ofrece `10.55.N.1`. Pruebe
+antes del evento los cables y hubs exactos, así como las laptops macOS y
+Windows; no dé por hecho que todos los puertos de laptop pueden alimentar una
+placa de manera confiable.
 
-## Configure the agent after cloning
+## Configurar el agente después de clonar
 
-Give every board its own API/LiteLLM virtual key and Telegram bot token. Never
-put the upstream LiteLLM master key on a board. For one to five Telegram users:
+Asigne a cada placa su propia clave de API o clave virtual de LiteLLM y su
+propio token de bot de Telegram. Nunca coloque la clave maestra de LiteLLM en
+una placa. Para uno a cinco usuarios de Telegram:
 
 ```bash
 sudo cdmx-agent-setup \
@@ -113,7 +125,7 @@ sudo cdmx-agent-setup \
   --telegram-user 222222222
 ```
 
-For a central LiteLLM gateway:
+Para una puerta de enlace LiteLLM central:
 
 ```bash
 sudo cdmx-agent-setup \
@@ -123,46 +135,54 @@ sudo cdmx-agent-setup \
   --telegram-user 111111111
 ```
 
-The command prompts invisibly for the API/virtual key and bot token. It also
-supports root-only secret files for instructor automation. Details and the
-optional Discord flow are in [device/agent/README.md](device/agent/README.md).
+El comando solicita la clave de API o clave virtual y el token del bot sin
+mostrarlos en pantalla. También admite archivos de secretos accesibles solo por
+root para automatización del instructor. Los detalles y el flujo opcional para
+Discord están en [device/agent/README.md](device/agent/README.md).
 
-## Day-of links
+## Enlaces para el día del taller
 
-For team `N`:
+Para el equipo `N`:
 
-| Purpose | Address |
+| Propósito | Dirección |
 |---|---|
-| Wi-Fi onboarding | `http://10.42.N.1:8080/` |
-| noVNC control | `http://equipoN.local:6080/control.html` |
-| noVNC view-only | `http://equipoN.local:6080/view.html` |
+| Configuración del Wi-Fi | `http://10.42.N.1:8080/` |
+| Control de noVNC | `http://equipoN.local:6080/control.html` |
+| noVNC de solo lectura | `http://equipoN.local:6080/view.html` |
 | SSH | `ssh cdmx@equipoN.local` |
 | Samba | `smb://equipoN.local/workspace` |
-| USB rescue | `http://10.55.N.1:6080/view.html` |
+| Rescate por USB | `http://10.55.N.1:6080/view.html` |
 
-Run `sudo cdmx-network reset` to forget venue Wi-Fi and restore the setup AP.
+Ejecute `sudo cdmx-network reset` para olvidar el Wi-Fi del recinto y restaurar
+el punto de acceso de configuración.
 
-## Reliability and security boundaries
+## Límites de confiabilidad y seguridad
 
-- ext4 journaling, zram, volatile bounded logs, unattended security updates,
-  restartable systemd services, and unique post-clone host keys reduce SD-card
-  wear and make ordinary power-cycle recovery automatic.
-- Sudden power loss can still corrupt any writable SD card. Keep tested spare
-  cards and use `sudo poweroff` whenever possible.
-- Raw VNC listens only on loopback. noVNC is LAN-only HTTP with VNC password
-  protection; it must not be exposed directly to the public internet.
-- PicoClaw is pinned because it is pre-v1. It runs without sudo as a separate
-  user, with systemd isolation and a single writable workspace, but remote code
-  execution is still intentionally enabled for the exercise. Use only explicit
-  five-person allowlists and disposable per-team credentials.
-- No LUKS is used on these workshop cards, as requested.
+- El registro por diario de ext4, zram, registros volátiles de tamaño limitado,
+  actualizaciones de seguridad desatendidas, servicios systemd reiniciables y
+  claves de host únicas después de clonar reducen el desgaste de la tarjeta SD
+  y permiten la recuperación automática tras ciclos normales de apagado y
+  encendido.
+- Una pérdida repentina de energía aún puede dañar cualquier tarjeta SD con
+  permisos de escritura. Mantenga tarjetas de repuesto ya probadas y use
+  `sudo poweroff` siempre que sea posible.
+- VNC directo escucha únicamente en loopback. noVNC es HTTP exclusivo de
+  la LAN y está protegido con contraseña de VNC; no debe exponerse directamente
+  a Internet pública.
+- PicoClaw está fijado a una versión concreta porque aún no llega a v1. Se
+  ejecuta sin sudo como usuario independiente, con aislamiento de systemd y un
+  único espacio de trabajo con permisos de escritura, pero la ejecución remota
+  de código sigue habilitada intencionalmente para el ejercicio. Use solo listas
+  explícitas de cinco personas autorizadas y credenciales desechables para cada
+  equipo.
+- Estas tarjetas del taller no usan LUKS, como se solicitó.
 
-Run repository checks with `make test`.
+Ejecute `make test` para correr las verificaciones del repositorio.
 
-Primary references: [Radxa ZERO 3 downloads](https://docs.radxa.com/en/zero/zero3/download),
-[Radxa installation](https://docs.radxa.com/en/zero/zero3/getting-started/install-os),
-[Radxa hotspot setup](https://docs.radxa.com/en/zero/zero3/radxa-os/ap),
-[Radxa USB networking](https://docs.radxa.com/en/zero/zero3/radxa-os/usbnet),
+Referencias principales: [descargas de Radxa ZERO 3](https://docs.radxa.com/en/zero/zero3/download),
+[instalación de Radxa](https://docs.radxa.com/en/zero/zero3/getting-started/install-os),
+[configuración del punto de acceso de Radxa](https://docs.radxa.com/en/zero/zero3/radxa-os/ap),
+[red USB de Radxa](https://docs.radxa.com/en/zero/zero3/radxa-os/usbnet),
 [PicoClaw](https://github.com/sipeed/picoclaw),
-[Pi](https://pi.dev/docs/latest/quickstart), and
+[Pi](https://pi.dev/docs/latest/quickstart) y
 [noVNC](https://github.com/novnc/noVNC).

@@ -1,25 +1,27 @@
-# Participant card
+# Tarjeta para participantes
 
-Replace `N` with your team number.
+Sustituya `N` por el número de su equipo.
 
-1. Join the venue workshop Wi-Fi. If the board is not configured, join
-   `equipoN-setup`, open `http://10.42.N.1:8080/`, and choose venue Wi-Fi.
-2. One teammate opens `http://equipoN.local:6080/control.html`.
-3. Everyone else opens `http://equipoN.local:6080/view.html`.
-4. Send a message mentioning your team's Telegram bot. The bot works only for
-   the five users approved by the instructor.
+1. Conéctese al Wi-Fi del taller en el recinto. Si la placa aún no está
+   configurada, conéctese a `equipoN-setup`, abra
+   `http://10.42.N.1:8080/` y elija la red Wi-Fi del recinto.
+2. Una persona del equipo abre `http://equipoN.local:6080/control.html`.
+3. Las demás abren `http://equipoN.local:6080/view.html`.
+4. Envíe un mensaje que mencione al bot de Telegram de su equipo. El bot solo
+   funciona para las cinco personas autorizadas por el instructor.
 
-Other access:
+Otros medios de acceso:
 
 ```text
 SSH:    ssh cdmx@equipoN.local
 Samba:  smb://equipoN.local/workspace
 ```
 
-The shared code directory is `/var/lib/cdmx-picoclaw/workspace`. Keep all agent
-work there. Do not paste API keys or bot tokens into chat, source files, or the
-terminal.
+El directorio de código compartido es `/var/lib/cdmx-picoclaw/workspace`.
+Guarde ahí todo el trabajo del agente. No pegue claves de API ni tokens de bots
+en el chat, en archivos de código fuente ni en la terminal.
 
-Before unplugging, use `sudo poweroff` and wait for activity to stop. If power
-is removed unexpectedly, the board should recover on the next boot, but an SD
-card can still be damaged by interruption during a write.
+Antes de desconectar la placa, use `sudo poweroff` y espere a que termine la
+actividad. Si se corta la energía inesperadamente, la placa debería
+recuperarse en el siguiente arranque, pero una interrupción durante una
+escritura aún puede dañar la tarjeta SD.

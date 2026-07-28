@@ -1,34 +1,38 @@
-# Architecture and tradeoffs
+# Arquitectura y decisiones de diseño
 
 ```text
-participant phones/laptops
+teléfonos y laptops de participantes
   ├─ HTTP 6080 ──> noVNC/websockify ──> 127.0.0.1:5901 TigerVNC/Openbox
-  ├─ SSH/Samba ───────────────────────> shared workspace
-  └─ Telegram/Discord cloud
-             │ outbound long poll/WebSocket
+  ├─ SSH/Samba ───────────────────────> espacio de trabajo compartido
+  └─ nube de Telegram/Discord
+             │ sondeo largo/WebSocket de salida
              v
-        PicoClaw (cdmx-agent, no sudo)
-             │ OpenAI API or per-team LiteLLM virtual key
+        PicoClaw (cdmx-agent, sin sudo)
+             │ API de OpenAI o clave virtual de LiteLLM por equipo
              v
        /var/lib/cdmx-picoclaw/workspace
 
-network onboarding
-  equipoN-setup / 10.42.N.1 ──> local portal ──> NetworkManager venue profile
-  optional USB NCM / 10.55.N.1 ────────────────> recovery access
+configuración inicial de la red
+  equipoN-setup / 10.42.N.1 ──> portal local ──> perfil del recinto en NetworkManager
+  NCM por USB opcional / 10.55.N.1 ───────────> acceso de recuperación
 ```
 
-The graphical session is single and shared. `view.html` asks noVNC to suppress
-input, while `control.html` permits it. This is coordination, not an access
-control boundary: anyone who knows the controller URL and password can control
-the desktop.
+La sesión gráfica es única y compartida. `view.html` indica a noVNC que suprima
+la entrada, mientras que `control.html` la permite. Esto es una medida de
+coordinación, no un límite de control de acceso: cualquier persona que conozca
+la URL del controlador y la contraseña puede controlar el escritorio.
 
-The channel agent is isolated from the login account so its API/channel secret
-file is unreadable by ordinary participants. Both identities share only the
-setgid workspace group. PicoClaw's command tool is enabled because autonomous
-coding is the workshop topic; systemd limits its filesystem and OS privileges,
-but it is not a mathematically complete sandbox.
+El agente del canal está aislado de la cuenta de inicio de sesión, por lo que
+los participantes normales no pueden leer su archivo de secretos de la API y
+del canal. Ambas identidades comparten únicamente el grupo setgid del espacio de
+trabajo. La herramienta de comandos de PicoClaw está habilitada porque la
+programación autónoma es el tema del taller; systemd limita sus privilegios
+sobre el sistema de archivos y el sistema operativo, pero no constituye un
+entorno aislado matemáticamente completo.
 
-The Wi-Fi onboarding portal is reachable only from that team's setup or USB
-subnet, uses a per-process form token, validates all values, calls `nmcli` with
-argument arrays rather than a shell, and never logs credentials. NetworkManager
-stores the venue profile in its root-only system connection directory.
+Solo se puede acceder al portal de configuración Wi-Fi desde la subred de
+configuración o USB de ese equipo. El portal usa un token de formulario por
+proceso, valida todos los valores, llama a `nmcli` mediante arreglos de
+argumentos en lugar de hacerlo a través de un shell y nunca registra las
+credenciales. NetworkManager almacena el perfil del recinto en su directorio de
+conexiones del sistema, al que solo root puede acceder.
