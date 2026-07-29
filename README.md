@@ -185,7 +185,6 @@ función de prueba o un experimento físico mediante una función de Python.
   de código sigue habilitada intencionalmente para el ejercicio. Use solo listas
   explícitas de cinco personas autorizadas y credenciales desechables para cada
   equipo.
-- Estas tarjetas del taller no usan LUKS, como se solicitó.
 
 Ejecute `make test` para correr las verificaciones del repositorio.
 
