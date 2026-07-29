@@ -1,5 +1,8 @@
 # Kit para el taller CDMX Local AI
 
+🇲🇽 [![Español](https://img.shields.io/badge/lang-Español-yellow.svg)](README.md) ·
+🇬🇧 [![English](https://img.shields.io/badge/lang-English-blue.svg)](README.en.md)
+
 Configuración reproducible para diez placas Radxa ZERO 3W de 1 GB. Cada placa
 arranca como `equipo1` a `equipo10`, funciona sin teclado una vez
 construida la imagen maestra, ofrece un escritorio noVNC compartido y puede
@@ -155,6 +158,13 @@ Para el equipo `N`:
 
 Ejecute `sudo cdmx-network reset` para olvidar el Wi-Fi del recinto y restaurar
 el punto de acceso de configuración.
+
+## Demostración de optimización bayesiana
+
+La demostración reproducible que aparece en el escritorio vive en
+[`aspuru-guzik-group/cdmx-bayesopt`](https://github.com/aspuru-guzik-group/cdmx-bayesopt).
+Está diseñada específicamente para la ZERO 3W de 1 GB y puede controlar una
+función de prueba o un experimento físico mediante una función de Python.
 
 ## Límites de confiabilidad y seguridad
 
