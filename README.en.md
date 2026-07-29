@@ -174,7 +174,6 @@ function or a physical experiment through a Python function.
   writable workspace, but remote code execution is intentionally enabled for
   the exercise. Use explicit allowlists of five authorized people and
   disposable credentials for each team.
-- These workshop cards do not use LUKS, as requested.
 
 Run `make test` to execute the repository checks.
 
