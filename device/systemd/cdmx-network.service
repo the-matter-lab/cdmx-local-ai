@@ -1,8 +1,8 @@
 [Unit]
 Description=CDMX workshop network selection and fallback hotspot
-After=NetworkManager.service cdmx-personalize.service
-Wants=NetworkManager.service
-Before=cdmx-network-portal.service cdmx-desktop.service
+After=NetworkManager.service cdmx-personalize.service cdmx-first-boot.service cdmx-network-portal.service
+Wants=NetworkManager.service cdmx-network-portal.service
+Before=cdmx-desktop.service
 
 [Service]
 Type=oneshot

@@ -4,8 +4,8 @@
 🇬🇧 [![English](https://img.shields.io/badge/lang-English-blue.svg)](README.en.md)
 
 Configuración reproducible para diez placas Radxa ZERO 3W de 1 GB. Cada placa
-arranca como `equipo1` a `equipo10`, funciona sin teclado una vez
-construida la imagen maestra, ofrece un escritorio noVNC compartido y puede
+arranca como `equipo0` a `equipo9`, funciona sin teclado, ofrece un escritorio
+noVNC compartido y puede
 ejecutar desde Telegram o Discord un agente de programación restringido al
 espacio de trabajo.
 
@@ -20,8 +20,6 @@ incluyen intencionalmente en el repositorio.
 - `http://equipoN.local:6080/view.html` — enlace compartido de solo lectura para
   el resto del equipo.
 - `ssh cdmx@equipoN.local` — acceso por terminal desde la misma red LAN.
-- `smb://equipoN.local/workspace` — carpeta de código compartida y con permisos
-  de escritura.
 - Un escritorio Openbox de 1280×720 con una terminal Pi, actividad del canal y
   del espacio de trabajo, estado de CPU/RAM/temperatura y una demostración en
   vivo de optimización bayesiana en 2D.
@@ -36,47 +34,37 @@ equipo.
 ## Sistema operativo
 
 La imagen fijada es la imagen de RadxaOS para ZERO 3 que Radxa ha probado por
-completo: Debian 12 Bookworm arm64, kernel 6.1, versión `rsdk-b1`. Los paquetes
-KDE originales permanecen disponibles para recuperación, pero durante el taller
-se usa Openbox para ahorrar memoria. La URL exacta y el SHA-512 publicado están
+completo: Debian 12 Bookworm arm64, kernel 6.1, versión `rsdk-b1`. La imagen del
+taller elimina las aplicaciones KDE y los navegadores locales que no se usan, y
+emplea Openbox para ahorrar almacenamiento y memoria. La URL exacta y el SHA-512 publicado están
 en [`image/radxa-zero3-bookworm-kde-rsdk-b1.env`](image/radxa-zero3-bookworm-kde-rsdk-b1.env).
 
 ## Preparar las diez tarjetas
 
-Use tarjetas SD de la misma marca, modelo y capacidad para la maestra y todas
-las copias. En la computadora Mac o Linux que se usará para prepararlas:
+Use tarjetas SD de la misma marca, modelo y capacidad. En la Mac de
+preparación, construya una vez la imagen local del taller:
 
 ```bash
-./host/list-disks.sh
 ./host/download-stock-image.sh
-./host/flash-stock.sh --disk /dev/DISK
+./host/build-workshop-image.sh
 ```
 
-Arranque una ZERO 3W con esa tarjeta original. Esta es la única etapa que puede
-requerir HDMI y teclado durante el tiempo necesario para conectarse a la red
-Wi-Fi de preparación. Clone este repositorio en la placa y después ejecute:
+En macOS, abra [`host/start-imager.command`](host/start-imager.command) para
+usar la interfaz local `http://127.0.0.1:8766/`. macOS solicita autorización
+una sola vez al iniciar el servidor; después puede insertar cada tarjeta,
+elegir `equipo0` a `equipo9` (o `admin` para la tarjeta rápida del instructor)
+y observar el progreso de escritura y verificación.
+La interfaz solo escucha en loopback, vuelve a validar que el destino sea una
+unidad completa y extraíble, y expulsa la tarjeta cuando es seguro retirarla.
+
+No se usa una placa maestra ni una tarjeta SD maestra física. La construcción
+se ejecuta en un entorno Linux ARM64 aislado en la Mac e incluye la clave SSH
+pública del usuario de la Mac. Después grabe cada tarjeta desde la interfaz web
+o use la línea de comandos:
 
 ```bash
-cd cdmx-local-ai
-sudo ./device/install.sh --team 1
-sudo reboot
-```
-
-Pruebe SSH, Samba, noVNC, el punto de acceso de configuración y un ciclo
-completo de apagado y encendido. **No** coloque claves de API ni tokens de bots
-en la tarjeta maestra. Límpiela y apáguela:
-
-```bash
-sudo cdmx-prepare-master --yes-really-power-off
-```
-
-Vuelva a insertarla en la computadora de preparación, capture su imagen y
-grabe la tarjeta de cada equipo:
-
-```bash
-./host/capture-golden.sh --source /dev/DISK
-./host/flash-team.sh --team 1 --disk /dev/DISK
-# repita con --team 2 ... --team 10
+./host/flash-team.sh --team 0 --disk /dev/DISK
+# repita con --team 1 ... --team 9
 ```
 
 Cada comando destructivo muestra el disco seleccionado y exige una confirmación
@@ -87,12 +75,17 @@ para ver el procedimiento detallado del operador.
 ## Configuración de red sin conocer el Wi-Fi del recinto
 
 Si no hay una conexión guardada para el recinto, `equipoN` crea el punto de
-acceso WPA2 de configuración `equipoN-setup` en `10.42.N.1`. Conéctese usando la
-contraseña local del taller definida al instalar la tarjeta maestra y abra:
+acceso abierto de configuración `equipoN-setup` en `10.42.N.1`. Al conectarse,
+la pantalla de inicio de sesión de la red debe abrirse automáticamente en
+iPhone/iPad, macOS, Windows y Android. Windows puede mostrar primero una
+notificación **Action needed**. Si el sistema operativo no muestra nada, abra:
 
 ```text
 http://10.42.N.1:8080/
 ```
+
+La tarjeta `admin` usa `admin-setup`, `http://10.42.10.1:8080/` y
+`http://admin.local:6080/control.html`.
 
 La página busca redes Wi-Fi y guarda las credenciales enviadas directamente en
 NetworkManager. Nunca las escribe en este repositorio ni en los registros de la
@@ -108,8 +101,8 @@ taller; el punto de acceso de cada placa sirve para incorporación y
 recuperación, no para sustituir una red Wi-Fi enrutada.
 
 USB-C NCM puede servir como ruta de rescate después de activar el **modo de
-periférico OTG** y el servicio `radxa-ncm@*.*` mediante `rsetup` de Radxa en la
-tarjeta maestra. Cuando existe `usb0`, la placa ofrece `10.55.N.1`. Pruebe
+periférico OTG** y el servicio `radxa-ncm@*.*` mediante `rsetup` de Radxa en
+cada placa. Cuando existe `usb0`, la placa ofrece `10.55.N.1`. Pruebe
 antes del evento los cables y hubs exactos, así como las laptops macOS y
 Windows; no dé por hecho que todos los puertos de laptop pueden alimentar una
 placa de manera confiable.
@@ -153,7 +146,6 @@ Para el equipo `N`:
 | Control de noVNC | `http://equipoN.local:6080/control.html` |
 | noVNC de solo lectura | `http://equipoN.local:6080/view.html` |
 | SSH | `ssh cdmx@equipoN.local` |
-| Samba | `smb://equipoN.local/workspace` |
 | Rescate por USB | `http://10.55.N.1:6080/view.html` |
 
 Ejecute `sudo cdmx-network reset` para olvidar el Wi-Fi del recinto y restaurar
@@ -176,9 +168,11 @@ función de prueba o un experimento físico mediante una función de Python.
 - Una pérdida repentina de energía aún puede dañar cualquier tarjeta SD con
   permisos de escritura. Mantenga tarjetas de repuesto ya probadas y use
   `sudo poweroff` siempre que sea posible.
-- VNC directo escucha únicamente en loopback. noVNC es HTTP exclusivo de
-  la LAN y está protegido con contraseña de VNC; no debe exponerse directamente
-  a Internet pública.
+- VNC directo escucha únicamente en loopback. El Wi-Fi de configuración y
+  noVNC no tienen contraseña deliberadamente para el taller, por lo que
+  cualquier persona en esas redes locales puede ver/controlar el escritorio.
+  No los exponga a Internet pública. SSH
+  acepta únicamente claves públicas.
 - PicoClaw está fijado a una versión concreta porque aún no llega a v1. Se
   ejecuta sin sudo como usuario independiente, con aislamiento de systemd y un
   único espacio de trabajo con permisos de escritura, pero la ejecución remota

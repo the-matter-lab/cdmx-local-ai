@@ -3,8 +3,10 @@
 Sustituya `N` por el número de su equipo.
 
 1. Conéctese al Wi-Fi del taller en el recinto. Si la placa aún no está
-   configurada, conéctese a `equipoN-setup`, abra
-   `http://10.42.N.1:8080/` y elija la red Wi-Fi del recinto.
+   configurada, conéctese a `equipoN-setup`; la pantalla de configuración debe
+   abrirse automáticamente en iPhone/iPad, macOS, Windows y Android. En Windows,
+   pulse primero la notificación **Action needed** si aparece. Si el sistema no
+   muestra nada, abra `http://10.42.N.1:8080/` y elija la red Wi-Fi del recinto.
 2. Una persona del equipo abre `http://equipoN.local:6080/control.html`.
 3. Las demás abren `http://equipoN.local:6080/view.html`.
 4. Envíe un mensaje que mencione al bot de Telegram de su equipo. El bot solo
@@ -14,7 +16,6 @@ Otros medios de acceso:
 
 ```text
 SSH:    ssh cdmx@equipoN.local
-Samba:  smb://equipoN.local/workspace
 ```
 
 El directorio de código compartido es `/var/lib/cdmx-picoclaw/workspace`.

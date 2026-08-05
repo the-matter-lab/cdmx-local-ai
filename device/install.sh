@@ -6,21 +6,25 @@ team=""
 skip_upgrade=false
 install_agents=true
 enable_usb_ncm=false
+offline_image=false
 workshop_user=cdmx
+authorized_key_file=""
 
 usage() {
     cat <<'EOF'
 Usage: sudo ./device/install.sh --team N [options]
 
 Install the workshop stack on a booted Radxa ZERO 3W running the pinned RadxaOS.
-The script prompts without echo for the shared local workshop password. For
-automation, pass it through the CDMX_WORKSHOP_PASSWORD environment variable.
+Local workshop services are passwordless. SSH accepts public keys only.
 
 Options:
-  --team N              Initial team number (1-10)
+  --team ID             Initial identity: 0-9 or admin
   --skip-upgrade        Skip apt full-upgrade (package lists are still refreshed)
   --skip-agents         Do not download PicoClaw/Pi now
   --enable-usb-ncm      Enable radxa-ncm if the OTG overlay was already selected
+  --offline-image       Prepare a mounted image without starting host services
+  --authorized-key-file PATH
+                        Install an instructor SSH public key (recommended)
   -h, --help            Show this help
 EOF
 }
@@ -31,6 +35,8 @@ while (($#)); do
         --skip-upgrade) skip_upgrade=true; shift ;;
         --skip-agents) install_agents=false; shift ;;
         --enable-usb-ncm) enable_usb_ncm=true; shift ;;
+        --offline-image) offline_image=true; shift ;;
+        --authorized-key-file) authorized_key_file=${2:-}; shift 2 ;;
         -h|--help) usage; exit 0 ;;
         *) printf 'Unknown option: %s\n' "$1" >&2; usage >&2; exit 64 ;;
     esac
@@ -40,25 +46,28 @@ if [[ $EUID -ne 0 ]]; then
     printf 'Run this installer with sudo.\n' >&2
     exit 77
 fi
-case "$team" in 1|2|3|4|5|6|7|8|9|10) ;; *) printf '%s\n' '--team must be 1-10' >&2; exit 64 ;; esac
+case "$team" in
+    0|1|2|3|4|5|6|7|8|9) device_hostname="equipo$team"; network_index=$team ;;
+    admin) device_hostname=admin; network_index=10 ;;
+    *) printf '%s\n' '--team must be 0-9 or admin' >&2; exit 64 ;;
+esac
 
 if [[ $(dpkg --print-architecture) != arm64 ]]; then
     printf 'This installer targets RadxaOS arm64; detected %s.\n' "$(dpkg --print-architecture)" >&2
     exit 69
 fi
 
-password=${CDMX_WORKSHOP_PASSWORD:-}
-if [[ -z $password ]]; then
-    [[ -t 0 ]] || { printf 'Set CDMX_WORKSHOP_PASSWORD for non-interactive installation.\n' >&2; exit 64; }
-    read -r -s -p 'Local workshop password (Linux/Samba/AP/noVNC, 12+ characters): ' password
-    printf '\n'
-    read -r -s -p 'Repeat password: ' password_check
-    printf '\n'
-    [[ $password == "$password_check" ]] || { printf 'Passwords do not match.\n' >&2; exit 65; }
-fi
-if ((${#password} < 12 || ${#password} > 63)) || [[ $password == *$'\n'* || $password == *$'\r'* ]]; then
-    printf 'Password must contain 12-63 characters without line breaks.\n' >&2
-    exit 65
+if [[ -n $authorized_key_file ]]; then
+    [[ -r $authorized_key_file ]] || { printf 'Cannot read SSH public key: %s\n' "$authorized_key_file" >&2; exit 66; }
+    if ! awk '
+        NF == 0 { next }
+        $1 ~ /^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp(256|384|521))$/ && NF >= 2 { found=1; next }
+        { exit 1 }
+        END { if (!found) exit 1 }
+    ' "$authorized_key_file"; then
+        printf 'The SSH key file must contain one or more public keys.\n' >&2
+        exit 65
+    fi
 fi
 
 export DEBIAN_FRONTEND=noninteractive
@@ -69,7 +78,7 @@ fi
 apt-get install -y --no-install-recommends \
     avahi-daemon bash ca-certificates curl feh git jq locales \
     network-manager novnc openbox openssh-server python3 python3-matplotlib \
-    python3-numpy rfkill samba samba-vfs-modules smbclient sudo tigervnc-standalone-server \
+    python3-numpy rfkill sudo tigervnc-standalone-server \
     tmux ufw unattended-upgrades websockify x11-xserver-utils xauth xterm \
     zram-tools
 
@@ -77,7 +86,15 @@ if ! id "$workshop_user" >/dev/null 2>&1; then
     adduser --disabled-password --gecos 'CDMX workshop team' "$workshop_user"
 fi
 usermod -aG audio,video,render,plugdev,systemd-journal "$workshop_user"
-printf '%s:%s\n' "$workshop_user" "$password" | chpasswd
+passwd --lock "$workshop_user" >/dev/null
+install -d -m 0700 -o "$workshop_user" -g "$workshop_user" "/home/$workshop_user/.ssh"
+if [[ -n $authorized_key_file ]]; then
+    install -m 0600 -o "$workshop_user" -g "$workshop_user" \
+        "$authorized_key_file" "/home/$workshop_user/.ssh/authorized_keys"
+else
+    rm -f "/home/$workshop_user/.ssh/authorized_keys"
+    printf 'WARNING: no instructor SSH public key was installed; SSH login will remain unavailable.\n' >&2
+fi
 
 # Disable vendor defaults after the dedicated account is known to work.
 for vendor_user in radxa rock; do
@@ -94,19 +111,29 @@ install -d -m 0750 -o "$workshop_user" -g "$workshop_user" \
 install -d -m 2770 -o "$workshop_user" -g cdmx-workspace /var/lib/cdmx-picoclaw/workspace
 cat > /etc/cdmx/workshop.conf <<EOF
 TEAM=$team
-HOSTNAME=equipo$team
-AP_SSID=equipo${team}-setup
+HOSTNAME=$device_hostname
+AP_SSID=${device_hostname}-setup
 WIFI_COUNTRY=MX
 WORKSHOP_USER=$workshop_user
+OPEN_ACCESS=1
+NETWORK_INDEX=$network_index
 EOF
 chmod 0644 /etc/cdmx/workshop.conf
-printf '%s\n' "$password" > /etc/cdmx/ap-password
-chmod 0600 /etc/cdmx/ap-password
+rm -f /etc/cdmx/ap-password
+install -d -m 0755 /etc/NetworkManager/dnsmasq-shared.d
+cat > /etc/NetworkManager/dnsmasq-shared.d/10-cdmx-captive.conf <<EOF
+address=/#/10.42.$network_index.1
+dhcp-option-force=114,http://10.42.$network_index.1:8080/captive-api
+EOF
+chmod 0644 /etc/NetworkManager/dnsmasq-shared.d/10-cdmx-captive.conf
 
-hostnamectl set-hostname "equipo$team"
+if ! $offline_image; then
+    hostnamectl set-hostname "$device_hostname"
+fi
+printf '%s\n' "$device_hostname" > /etc/hostname
 cat > /etc/hosts <<EOF
 127.0.0.1 localhost
-127.0.1.1 equipo$team
+127.0.1.1 $device_hostname
 ::1 localhost ip6-localhost ip6-loopback
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
@@ -126,23 +153,25 @@ chmod 0755 /opt/cdmx-local-ai/device/network/cdmx-network \
 
 install -m 0755 /opt/cdmx-local-ai/device/network/cdmx-network /usr/local/sbin/cdmx-network
 install -m 0755 /opt/cdmx-local-ai/device/network/network_portal.py /usr/local/lib/cdmx/network_portal.py
+install -d -m 0755 /usr/local/share/cdmx
+install -m 0644 /opt/cdmx-local-ai/device/network/matter-lab-logo.svg /usr/local/share/cdmx/matter-lab-logo.svg
 install -m 0755 /opt/cdmx-local-ai/device/network/usb_rescue.sh /usr/local/lib/cdmx/usb_rescue.sh
 install -m 0755 /opt/cdmx-local-ai/device/personalize.sh /usr/local/sbin/cdmx-personalize
-install -m 0755 /opt/cdmx-local-ai/device/prepare-master.sh /usr/local/sbin/cdmx-prepare-master
+install -m 0755 /opt/cdmx-local-ai/device/configure-firewall.sh /usr/local/sbin/cdmx-configure-firewall
+install -m 0755 /opt/cdmx-local-ai/device/first-boot.sh /usr/local/sbin/cdmx-first-boot
 
 for unit in /opt/cdmx-local-ai/device/systemd/*.service /opt/cdmx-local-ai/device/systemd/*.timer; do
     [[ -e $unit ]] || continue
     install -m 0644 "$unit" "/etc/systemd/system/$(basename "$unit")"
 done
 
-printf '%s\n' "$password" | tigervncpasswd -f > /etc/cdmx-local-ai/vnc.passwd
-chown root:"$workshop_user" /etc/cdmx-local-ai/vnc.passwd
-chmod 0640 /etc/cdmx-local-ai/vnc.passwd
+rm -f /etc/cdmx-local-ai/vnc.passwd
 
 install -d -m 0755 /etc/ssh/sshd_config.d
 cat > /etc/ssh/sshd_config.d/30-cdmx-workshop.conf <<EOF
 PermitRootLogin no
-PasswordAuthentication yes
+PubkeyAuthentication yes
+PasswordAuthentication no
 KbdInteractiveAuthentication no
 PermitEmptyPasswords no
 AllowUsers $workshop_user
@@ -150,28 +179,7 @@ MaxAuthTries 4
 X11Forwarding no
 EOF
 
-cat > /etc/samba/cdmx-workshop.conf <<EOF
-[workspace]
-    comment = Equipo $team workspace
-    path = /var/lib/cdmx-picoclaw/workspace
-    browseable = yes
-    read only = no
-    guest ok = no
-    valid users = $workshop_user
-    force user = $workshop_user
-    force group = $workshop_user
-    create mask = 0660
-    directory mask = 0770
-    ea support = yes
-    vfs objects = catia fruit streams_xattr
-    fruit:metadata = stream
-    fruit:model = MacSamba
-EOF
-if ! grep -Fq 'include = /etc/samba/cdmx-workshop.conf' /etc/samba/smb.conf; then
-    printf '\ninclude = /etc/samba/cdmx-workshop.conf\n' >> /etc/samba/smb.conf
-fi
-printf '%s\n%s\n' "$password" "$password" | smbpasswd -s -a "$workshop_user"
-
+install -d -m 0755 /etc/systemd/journald.conf.d
 cat > /etc/systemd/journald.conf.d/30-cdmx-sd-card.conf <<'EOF'
 [Journal]
 Storage=volatile
@@ -193,27 +201,18 @@ Unattended-Upgrade::Automatic-Reboot "false";
 Unattended-Upgrade::Remove-Unused-Dependencies "true";
 EOF
 
-ufw --force reset
-ufw default deny incoming
-ufw default allow outgoing
-for subnet in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16; do
-    ufw allow from "$subnet" to any port 22 proto tcp
-    ufw allow from "$subnet" to any port 6080 proto tcp
-    ufw allow from "$subnet" to any port 445 proto tcp
-    ufw allow from "$subnet" to any port 139 proto tcp
-    ufw allow from "$subnet" to any port 5353 proto udp
-done
-for subnet in 10.42.0.0/16 10.55.0.0/16; do
-    ufw allow from "$subnet" to any port 8080 proto tcp
-    ufw allow from "$subnet" to any port 53 proto tcp
-    ufw allow from "$subnet" to any port 53 proto udp
-    ufw allow from "$subnet" to any port 67 proto udp
-    ufw allow from "$subnet" to any port 68 proto udp
-done
-ufw --force enable
+if $offline_image; then
+    touch /etc/cdmx/needs-runtime-init
+else
+    /usr/local/sbin/cdmx-configure-firewall
+fi
 
 if $install_agents && [[ -x /opt/cdmx-local-ai/device/agent/install-agent.sh ]]; then
-    /opt/cdmx-local-ai/device/agent/install-agent.sh
+    if $offline_image; then
+        CDMX_OFFLINE_IMAGE=1 /opt/cdmx-local-ai/device/agent/install-agent.sh
+    else
+        /opt/cdmx-local-ai/device/agent/install-agent.sh
+    fi
 fi
 
 if $enable_usb_ncm; then
@@ -221,17 +220,20 @@ if $enable_usb_ncm; then
         printf 'radxa-ncm service was not found; use rsetup to enable OTG peripheral mode and NCM.\n' >&2
 fi
 
-systemctl daemon-reload
-systemctl enable ssh avahi-daemon smbd NetworkManager zramswap \
-    cdmx-personalize.service cdmx-network.service cdmx-network-portal.service \
+if ! $offline_image; then
+    systemctl daemon-reload
+fi
+systemctl enable ssh avahi-daemon NetworkManager zramswap \
+    cdmx-personalize.service cdmx-first-boot.service cdmx-network.service cdmx-network-portal.service \
     cdmx-usb-rescue.service cdmx-demo.service cdmx-desktop.service cdmx-novnc.service
 if [[ -f /etc/systemd/system/cdmx-picoclaw.service ]]; then
     systemctl enable cdmx-picoclaw.service
 fi
 
 chown -R "$workshop_user:$workshop_user" "/home/$workshop_user/.pi" "/home/$workshop_user/.picoclaw"
-systemctl restart ssh avahi-daemon smbd
+if ! $offline_image; then
+    systemctl restart ssh avahi-daemon
+fi
 
-unset password password_check CDMX_WORKSHOP_PASSWORD
-printf '\nInstalled equipo%s. Reboot, join equipo%s-setup, then open http://10.42.%s.1:8080/.\n' "$team" "$team" "$team"
-printf 'After testing, run sudo cdmx-prepare-master before capturing the golden SD image.\n'
+printf '\nInstalled %s. Reboot, join %s-setup, then open http://10.42.%s.1:8080/.\n' "$device_hostname" "$device_hostname" "$network_index"
+printf 'The setup Wi-Fi and noVNC have no password; SSH is public-key only.\n'

@@ -1,3 +1,7 @@
-# CDMX workshop first-boot file.
-# Wi-Fi is intentionally not configured in the image. Participants configure
-# the venue network after connecting over the local setup access point/USB.
+# CDMX workshop first boot. Team identity is read separately from
+# /config/cdmx-team.env by cdmx-personalize.service.
+no_fail
+log "Preparing the CDMX workshop image"
+resize_root
+update_locale en_US.UTF-8
+remove_packages rsetup-config-first-boot

@@ -16,13 +16,14 @@ while (($#)); do
     --image) image=${2:-}; shift 2 ;;
     --confirm) confirmation=${2:-}; shift 2 ;;
     -h|--help)
-      printf 'Usage: %s --team 1..10 --disk /dev/DISK [--image GOLDEN.img.xz] [--confirm "ERASE /dev/DISK FOR equipoN"]\n' "$0"
+      printf 'Usage: %s --team 0..9|admin --disk /dev/DISK [--image GOLDEN.img.xz]\n' "$0"
       exit 0 ;;
     *) die "Unknown argument: $1" ;;
   esac
 done
 
 validate_team "$team"
+hostname=$(team_hostname "$team")
 disk=$(canonical_disk "$disk")
 assert_safe_disk "$disk"
 verify_compressed_image "$image"
@@ -32,9 +33,9 @@ if [[ -f "${image}.bytes" ]]; then
   [[ "$actual_bytes" == "$captured_bytes" ]] || die "Golden image size metadata does not match the image"
 fi
 disk_description "$disk" >&2
-confirm_destructive_action "ERASE $disk FOR equipo${team}" "$confirmation"
+confirm_destructive_action "ERASE $disk FOR ${hostname}" "$confirmation"
 write_image "$image" "$disk"
 verify_written_image "$image" "$disk"
 "$ROOT/host/provision-team.sh" --disk "$disk" --team "$team"
 eject_disk "$disk"
-note "equipo${team} is verified and safe to remove"
+note "${hostname} is verified and safe to remove"

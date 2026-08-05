@@ -27,24 +27,47 @@ assert_fails() {
   fi
 }
 
-assert_eq 1 "$(validate_team 1; printf 1)" 'team 1 is valid'
-assert_eq 10 "$(validate_team 10; printf 10)" 'team 10 is valid'
-assert_fails 'team 0 is rejected' validate_team 0
-assert_fails 'team 11 is rejected' validate_team 11
+assert_eq 0 "$(validate_team 0; printf 0)" 'team 0 is valid'
+assert_eq 9 "$(validate_team 9; printf 9)" 'team 9 is valid'
+assert_eq admin "$(validate_team admin; printf admin)" 'admin identity is valid'
+assert_fails 'team 10 is rejected' validate_team 10
+assert_fails 'negative team is rejected' validate_team -1
 assert_fails 'non-numeric team is rejected' validate_team one
+if [[ $(host_os) == macos ]]; then
+  assert_eq /dev/rdisk42 "$(raw_disk /dev/disk42)" 'macOS raw-disk path has no escapes'
+fi
 
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/cdmx-test.XXXXXX")
 write_team_config "$tmp" 7
 assert_eq CDMX_TEAM=7 "$(grep '^CDMX_TEAM=' "$tmp/cdmx-team.env")" 'team marker contains number'
 assert_eq CDMX_HOSTNAME=equipo7 "$(grep '^CDMX_HOSTNAME=' "$tmp/cdmx-team.env")" 'team marker contains hostname'
+write_team_config "$tmp" admin
+assert_eq CDMX_TEAM=admin "$(grep '^CDMX_TEAM=' "$tmp/cdmx-team.env")" 'admin marker contains identity'
+assert_eq CDMX_HOSTNAME=admin "$(grep '^CDMX_HOSTNAME=' "$tmp/cdmx-team.env")" 'admin marker contains hostname'
 if grep -Eqi '(password|psk|ssid|api[_-]?key)=' "$tmp/cdmx-team.env" "$tmp/before.txt"; then
   printf 'not ok - generated config appears to contain a credential\n'
   failures=$((failures + 1))
 else
   printf 'ok - generated config contains no credential assignment\n'
 fi
+if grep -Eq '^[[:space:]]*(enable_service|disable_service|regenerate_ssh_hostkey)([[:space:]]|$)' "$tmp/before.txt"; then
+  printf 'not ok - before.txt can deadlock first boot by managing ordered services\n'
+  failures=$((failures + 1))
+else
+  printf 'ok - before.txt leaves ordered services to systemd\n'
+fi
 
 assert_eq 6f9f67df6f997bef41aac2cc568ebb4b7820216be1256a49ce472cb877684c08ad793ff726da3155a02f0eab60b2b2c9318168b3cf8fab81849ae91e8724f10d "$(bash -c 'source "$1"; printf %s "$IMAGE_SHA512"' _ "$ROOT/image/radxa-zero3-bookworm-kde-rsdk-b1.env")" 'stock image pin is unchanged'
+
+if grep -Eq 'CDMX_WORKSHOP_PASSWORD|PasswordAuthentication yes|guest ok = no|SecurityTypes VncAuth' \
+    "$ROOT/device/install.sh" "$ROOT/device/systemd/cdmx-desktop.service"; then
+  printf 'not ok - workshop image still requires a shared local password\n'
+  failures=$((failures + 1))
+else
+  printf 'ok - workshop services do not require a shared local password\n'
+fi
+assert_eq OPEN_ACCESS=1 "$(grep '^OPEN_ACCESS=' "$ROOT/device/personalize.sh")" 'clones keep the passwordless setup AP'
+assert_eq RuntimeDirectory=cdmx "$(grep '^RuntimeDirectory=' "$ROOT/device/systemd/cdmx-network-portal.service")" 'portal runtime directory exists before sandboxing'
 
 if (( failures > 0 )); then
   printf '%s test(s) failed\n' "$failures" >&2

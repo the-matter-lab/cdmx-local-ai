@@ -6,22 +6,21 @@
   sean del mismo modelo y tengan la misma capacidad en bytes.
 - Use fuentes de alimentación de 5 V/2 A o superiores y pruebe los cables de
   alimentación exactos. La ZERO 3 solo acepta una entrada de 5 V.
-- Construya, limpie, capture y verifique mediante lectura la imagen maestra.
-- Grabe `equipo1` a `equipo10`; nunca arranque dos tarjetas con el mismo número.
+- Construya y verifique la imagen local del taller en la Mac.
+- Grabe `equipo0` a `equipo9`; nunca arranque dos tarjetas con el mismo número.
 - Arranque cada tarjeta dos veces, incluida una prueba intencional de desconexión
   y reconexión después de que hayan terminado todas las escrituras.
-- Verifique `.local`, SSH, escritura y borrado en Samba, noVNC de control, noVNC
+- Verifique `.local`, SSH, noVNC de control, noVNC
   de solo lectura, la demostración bayesiana, zram y la recuperación del punto
   de acceso de configuración.
-- Si usará el rescate por USB, active en la maestra la superposición de
+- Si usará el rescate por USB, active en cada placa la superposición de
   periférico OTG de Radxa y el servicio NCM, y después haga pruebas con equipos
   macOS y Windows.
 
-## Credenciales que debe preparar
+## Accesos que debe preparar
 
-- Una contraseña local del taller para Linux, Samba, el punto de acceso de
-  configuración y noVNC. Imprímala en la tarjeta informativa del equipo; no
-  reutilice una contraseña personal.
+- Una clave pública SSH del instructor. La clave privada nunca se copia a las
+  tarjetas. El Wi-Fi de configuración y noVNC no usan contraseña.
 - Diez claves de proyecto de OpenAI o, preferentemente, diez claves virtuales de
   LiteLLM con presupuesto limitado.
 - Diez bots de Telegram, uno por equipo. Registre cada token en una hoja de
@@ -32,7 +31,7 @@
   Intent habilitado.
 
 Inyecte las credenciales de la API y del canal únicamente después de grabar cada
-clon. Nunca las agregue a la tarjeta maestra ni al repositorio.
+tarjeta. Nunca las agregue a la imagen local ni al repositorio.
 
 ## Ensayo de la red del recinto
 

@@ -3,7 +3,7 @@
 ```text
 teléfonos y laptops de participantes
   ├─ HTTP 6080 ──> noVNC/websockify ──> 127.0.0.1:5901 TigerVNC/Openbox
-  ├─ SSH/Samba ───────────────────────> espacio de trabajo compartido
+  ├─ SSH ─────────────────────────────> espacio de trabajo compartido
   └─ nube de Telegram/Discord
              │ sondeo largo/WebSocket de salida
              v

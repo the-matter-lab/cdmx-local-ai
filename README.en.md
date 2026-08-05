@@ -4,8 +4,8 @@
 🇬🇧 [![English](https://img.shields.io/badge/lang-English-blue.svg)](README.en.md)
 
 Reproducible configuration for ten 1 GB Radxa ZERO 3W boards. Each board
-boots as `equipo1` through `equipo10`, runs without a keyboard after the master
-image has been built, provides a shared noVNC desktop, and can run a coding
+boots as `equipo0` through `equipo9`, runs without a keyboard, provides a
+shared noVNC desktop, and can run a coding
 agent from Telegram or Discord inside a restricted workspace.
 
 This repository contains all source code, configuration, checks, and operating
@@ -18,7 +18,6 @@ locally and intentionally excluded from the repository.
 - `http://equipoN.local:6080/view.html` — shared read-only link for the rest of
   the team.
 - `ssh cdmx@equipoN.local` — terminal access from the same LAN.
-- `smb://equipoN.local/workspace` — shared, writable code folder.
 - A 1280×720 Openbox desktop with a Pi terminal, channel and workspace
   activity, CPU/RAM/temperature status, and a live 2-D Bayesian-optimization
   demonstration.
@@ -32,47 +31,36 @@ the other four watch and send instructions through the team channel.
 ## Operating system
 
 The pinned image is the fully tested RadxaOS image for ZERO 3: Debian 12
-Bookworm arm64, kernel 6.1, release `rsdk-b1`. The original KDE packages remain
-available for recovery, but the workshop uses Openbox to conserve memory. The
+Bookworm arm64, kernel 6.1, release `rsdk-b1`. The workshop image removes the
+unused local KDE applications and browsers and uses Openbox to conserve storage and memory. The
 exact URL and published SHA-512 are in
 [`image/radxa-zero3-bookworm-kde-rsdk-b1.env`](image/radxa-zero3-bookworm-kde-rsdk-b1.env).
 
 ## Prepare the ten cards
 
-Use SD cards with the same make, model, and capacity for the master and every
-copy. On the Mac or Linux preparation computer:
+Use SD cards with the same make, model, and capacity. On the preparation Mac,
+build the local workshop image once:
 
 ```bash
-./host/list-disks.sh
 ./host/download-stock-image.sh
-./host/flash-stock.sh --disk /dev/DISK
+./host/build-workshop-image.sh
 ```
 
-Boot one ZERO 3W with that original card. This is the only stage that may need
-HDMI and a keyboard long enough to join the preparation Wi-Fi. Clone this
-repository on the board and run:
+On macOS, open [`host/start-imager.command`](host/start-imager.command) to use
+the local interface at `http://127.0.0.1:8766/`. macOS requests authorization
+once when the server starts; after that, insert each card, choose `equipo0`
+through `equipo9` (or `admin` for the instructor's faster spare card), and
+watch live write and verification progress. The server
+listens only on loopback, revalidates that the target is a removable whole
+disk, and ejects the card when it is safe to remove.
+
+No physical master board or master SD card is used. The build runs in an
+isolated ARM64 Linux environment on the Mac and includes the Mac user's SSH
+public key. Then write each card in the web app, or use the CLI:
 
 ```bash
-cd cdmx-local-ai
-sudo ./device/install.sh --team 1
-sudo reboot
-```
-
-Test SSH, Samba, noVNC, the setup access point, and a complete power-off and
-power-on cycle. **Do not** put API keys or bot tokens on the master card. Clean
-and shut it down:
-
-```bash
-sudo cdmx-prepare-master --yes-really-power-off
-```
-
-Insert it back into the preparation computer, capture its image, and write the
-card for each team:
-
-```bash
-./host/capture-golden.sh --source /dev/DISK
-./host/flash-team.sh --team 1 --disk /dev/DISK
-# repeat with --team 2 ... --team 10
+./host/flash-team.sh --team 0 --disk /dev/DISK
+# repeat with --team 1 ... --team 9
 ```
 
 Every destructive command displays the selected disk and requires exact
@@ -82,13 +70,18 @@ for the detailed operator procedure.
 
 ## Network setup without knowing the venue Wi-Fi
 
-If there is no saved connection for the venue, `equipoN` creates the WPA2
-setup access point `equipoN-setup` at `10.42.N.1`. Connect using the local
-workshop password defined while installing the master card and open:
+If there is no saved connection for the venue, `equipoN` creates the open
+setup access point `equipoN-setup` at `10.42.N.1`. Joining it should open the
+network sign-in window automatically on iPhone/iPad, macOS, Windows, and
+Android. Windows may show an **Action needed** notification first. If the
+operating system does not show anything, open:
 
 ```text
 http://10.42.N.1:8080/
 ```
+
+The `admin` card uses `admin-setup`, `http://10.42.10.1:8080/`, and
+`http://admin.local:6080/control.html`.
 
 The page scans for Wi-Fi networks and saves submitted credentials directly in
 NetworkManager. It never writes them to this repository or the application
@@ -103,7 +96,7 @@ point is the reliable solution; each board's setup access point is for
 onboarding and recovery, not a replacement for routed Wi-Fi.
 
 USB-C NCM can provide a rescue route after enabling **OTG peripheral mode** and
-the `radxa-ncm@*.*` service with Radxa `rsetup` on the master card. When `usb0`
+the `radxa-ncm@*.*` service with Radxa `rsetup` on each board. When `usb0`
 exists, the board provides `10.55.N.1`. Test the exact cables and hubs plus the
 macOS and Windows laptops before the event; do not assume every laptop port can
 power a board reliably.
@@ -147,7 +140,6 @@ For team `N`:
 | noVNC control | `http://equipoN.local:6080/control.html` |
 | Read-only noVNC | `http://equipoN.local:6080/view.html` |
 | SSH | `ssh cdmx@equipoN.local` |
-| Samba | `smb://equipoN.local/workspace` |
 | USB rescue | `http://10.55.N.1:6080/view.html` |
 
 Run `sudo cdmx-network reset` to forget the venue Wi-Fi and restore the setup
@@ -167,8 +159,10 @@ function or a physical experiment through a Python function.
   reduce SD-card wear and enable automatic recovery after normal power cycles.
 - Sudden power loss can still damage any writable SD card. Keep tested spare
   cards and use `sudo poweroff` whenever possible.
-- Direct VNC listens only on loopback. noVNC is LAN-only HTTP protected by the
-  VNC password; it must not be exposed directly to the public Internet.
+- Direct VNC listens only on loopback. The setup Wi-Fi and noVNC are
+  deliberately passwordless for the workshop, so anyone on those local
+  networks can view/control the desktop. Do not expose
+  them to the public Internet. SSH is public-key only.
 - PicoClaw is pinned to a specific version because it has not reached v1. It
   runs without sudo as a dedicated user, with systemd isolation and one
   writable workspace, but remote code execution is intentionally enabled for

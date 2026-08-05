@@ -11,7 +11,7 @@ User=cdmx
 Group=cdmx
 Environment=CDMX_ROOT=/opt/cdmx-local-ai
 Environment=DISPLAY_NUMBER=1
-Environment=VNC_PASSWORD_FILE=/etc/cdmx-local-ai/vnc.passwd
+Environment=VNC_SECURITY_TYPES=None
 WorkingDirectory=/var/lib/cdmx-picoclaw/workspace
 ExecStart=/opt/cdmx-local-ai/device/desktop/start-session.sh
 Restart=on-failure

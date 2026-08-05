@@ -106,7 +106,9 @@ install -o cdmx-agent -g cdmx-workspace -m 0660 \
   "${script_dir}/workspace/README.md" /var/lib/cdmx-picoclaw/workspace/README.md
 install -o root -g root -m 0644 \
   "${script_dir}/../systemd/cdmx-picoclaw.service" /etc/systemd/system/cdmx-picoclaw.service
-systemctl daemon-reload
+if [[ ${CDMX_OFFLINE_IMAGE:-0} != 1 ]]; then
+  systemctl daemon-reload
+fi
 
 echo
 echo "Installed PicoClaw ${PICOCLAW_VERSION}, Node ${NODE_VERSION}, and Pi ${PI_CODING_AGENT_VERSION}."

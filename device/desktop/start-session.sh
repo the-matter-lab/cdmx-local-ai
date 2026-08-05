@@ -8,11 +8,24 @@ ROOT="${CDMX_ROOT:-$(cd -- "$(dirname -- "$0")/../.." && pwd)}"
 RUNTIME_DIR="${RUNTIME_DIRECTORY:-/run/cdmx-desktop}"
 AUTH_FILE="$RUNTIME_DIR/Xauthority"
 VNC_PASSWORD_FILE="${VNC_PASSWORD_FILE:-/etc/cdmx-local-ai/vnc.passwd}"
+VNC_SECURITY_TYPES="${VNC_SECURITY_TYPES:-None}"
 
-if [ ! -r "$VNC_PASSWORD_FILE" ]; then
-    echo "Missing $VNC_PASSWORD_FILE. Create it with: tigervncpasswd $VNC_PASSWORD_FILE" >&2
-    exit 78
-fi
+case "$VNC_SECURITY_TYPES" in
+    None)
+        set -- -SecurityTypes None
+        ;;
+    VncAuth)
+        if [ ! -r "$VNC_PASSWORD_FILE" ]; then
+            echo "Missing $VNC_PASSWORD_FILE." >&2
+            exit 78
+        fi
+        set -- -SecurityTypes VncAuth -PasswordFile "$VNC_PASSWORD_FILE"
+        ;;
+    *)
+        echo "VNC_SECURITY_TYPES must be None or VncAuth." >&2
+        exit 64
+        ;;
+esac
 
 XVNC="$(command -v Xtigervnc || command -v Xvnc || true)"
 if [ -z "$XVNC" ]; then
@@ -44,8 +57,7 @@ trap cleanup EXIT INT TERM
 
 "$XVNC" "$DISPLAY" \
     -geometry 1280x720 -depth 24 \
-    -localhost yes -SecurityTypes VncAuth \
-    -PasswordFile "$VNC_PASSWORD_FILE" \
+    -localhost yes "$@" \
     -AlwaysShared -AcceptKeyEvents -AcceptPointerEvents \
     -DisconnectClients=0 -NeverShared=0 \
     -rfbport 5901 -auth "$AUTH_FILE" \

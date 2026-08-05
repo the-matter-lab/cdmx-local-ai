@@ -26,7 +26,17 @@ host_os() {
 
 validate_team() {
   local team=${1:-}
-  [[ "$team" =~ ^([1-9]|10)$ ]] || die "Team must be an integer from 1 through 10"
+  [[ "$team" == admin || "$team" =~ ^[0-9]$ ]] || die "Identity must be admin or an integer from 0 through 9"
+}
+
+team_hostname() {
+  local team=${1:-}
+  validate_team "$team"
+  if [[ "$team" == admin ]]; then
+    printf 'admin\n'
+  else
+    printf 'equipo%s\n' "$team"
+  fi
 }
 
 canonical_disk() {
@@ -48,7 +58,7 @@ raw_disk() {
   local disk
   disk=$(canonical_disk "$1")
   if [[ $(host_os) == macos ]]; then
-    printf '%s\n' "${disk/\/dev\/disk/\/dev\/rdisk}"
+    printf '/dev/r%s\n' "${disk#/dev/}"
   else
     printf '%s\n' "$disk"
   fi
@@ -81,7 +91,11 @@ assert_safe_disk() {
     [[ "$disk" != /dev/disk0 ]] || die "Refusing to erase macOS system disk /dev/disk0"
     info=$(diskutil info "$disk") || die "Disk does not exist: $disk"
     grep -q 'Whole:[[:space:]]*Yes' <<<"$info" || die "Target is not a whole disk: $disk"
-    if grep -Eq '(Internal:[[:space:]]*Yes|Device Location:[[:space:]]*Internal)' <<<"$info"; then
+    # macOS reports media in its built-in SDXC reader as internally located,
+    # even though the card itself is removable. Continue only when diskutil
+    # explicitly confirms removable media; fixed internal disks remain blocked.
+    if grep -Eq '(Internal:[[:space:]]*Yes|Device Location:[[:space:]]*Internal)' <<<"$info" &&
+        ! grep -Eq 'Removable Media:[[:space:]]*(Yes|Removable)' <<<"$info"; then
       die "Refusing to erase an internal disk: $disk"
     fi
     if ! grep -Eq '(Device Location:[[:space:]]*External|Removable Media:[[:space:]]*(Yes|Removable)|Protocol:[[:space:]]*USB)' <<<"$info"; then
@@ -255,10 +269,18 @@ find_config_partition() {
   disk=$(canonical_disk "$1")
   if [[ $(host_os) == macos ]]; then
     part=$(diskutil list "$disk" | awk 'tolower($0) ~ /config/ {print $NF; exit}')
+    # Radxa marks its small FAT16 `config` partition with a Linux GPT type, so
+    # macOS often hides the volume label. It is the first 16 MiB partition.
+    if [[ -z "$part" ]]; then
+      part=$(diskutil list "$disk" | awk 'tolower($0) ~ /linux filesystem/ && $0 ~ /16\.8 MB/ {print $NF; exit}')
+    fi
+    if [[ -z "$part" ]]; then
+      part=$(diskutil list "$disk" | awk 'tolower($0) ~ /[[:space:]]efi[[:space:]]+efi[[:space:]]/ {print $NF; exit}')
+    fi
     [[ -n "$part" ]] || return 1
     [[ "$part" == /dev/* ]] || part="/dev/$part"
   else
-    part=$(lsblk -lnpo NAME,FSTYPE,LABEL "$disk" | awk 'tolower($2) ~ /^(vfat|fat|msdos)/ && tolower($3) == "config" {print $1; exit}')
+    part=$(lsblk -lnpo NAME,FSTYPE,LABEL "$disk" | awk 'tolower($2) ~ /^(vfat|fat|msdos)/ && tolower($3) ~ /^(config|efi)$/ {print $1; exit}')
     [[ -n "$part" ]] || return 1
   fi
   printf '%s\n' "$part"
@@ -267,16 +289,21 @@ find_config_partition() {
 # Sets CONFIG_MOUNT and CONFIG_MOUNT_OWNED for cleanup_config_mount.
 mount_config_partition() {
   local disk=$1 part current
-  part=$(find_config_partition "$disk") || die "Could not find the FAT partition labelled 'config' on $disk"
+  part=$(find_config_partition "$disk") || die "Could not find a FAT partition labelled 'config' or 'efi' on $disk"
   if [[ $(host_os) == macos ]]; then
     current=$(diskutil info "$part" | awk -F: '/Mount Point:/ {sub(/^[ \t]+/, "", $2); print $2; exit}')
     if [[ -n "$current" && "$current" != 'Not mounted' ]]; then
       CONFIG_MOUNT=$current
       CONFIG_MOUNT_OWNED=macos
     else
-      diskutil mount "$part" >/dev/null || die "Could not mount $part"
-      CONFIG_MOUNT=$(diskutil info "$part" | awk -F: '/Mount Point:/ {sub(/^[ \t]+/, "", $2); print $2; exit}')
-      CONFIG_MOUNT_OWNED=macos
+      if diskutil mount "$part" >/dev/null 2>&1; then
+        CONFIG_MOUNT=$(diskutil info "$part" | awk -F: '/Mount Point:/ {sub(/^[ \t]+/, "", $2); print $2; exit}')
+        CONFIG_MOUNT_OWNED=macos
+      else
+        CONFIG_MOUNT=$(mktemp -d "${TMPDIR:-/tmp}/cdmx-config.XXXXXX")
+        mount_msdos "$part" "$CONFIG_MOUNT" || die "Could not mount $part as FAT"
+        CONFIG_MOUNT_OWNED=macos-manual
+      fi
     fi
     [[ -d "$CONFIG_MOUNT" ]] || die "Could not determine mount point for $part"
   else
@@ -296,6 +323,7 @@ cleanup_config_mount() {
   local disk=${1:-}
   case "${CONFIG_MOUNT_OWNED:-}" in
     macos) diskutil unmount "${CONFIG_MOUNT:?}" >/dev/null || true ;;
+    macos-manual) umount "${CONFIG_MOUNT:?}" || true; rmdir "$CONFIG_MOUNT" 2>/dev/null || true ;;
     linux) sudo umount "${CONFIG_MOUNT:?}" || true; rmdir "$CONFIG_MOUNT" 2>/dev/null || true ;;
     linux-existing) sudo umount "${CONFIG_MOUNT:?}" || true ;;
   esac
@@ -307,7 +335,7 @@ cleanup_config_mount() {
 write_team_config() {
   local destination=$1 team=$2 hostname source_root staging
   validate_team "$team"
-  hostname="equipo${team}"
+  hostname=$(team_hostname "$team")
   source_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
   staging=$(mktemp -d "${TMPDIR:-/tmp}/cdmx-team.XXXXXX")
   cp "$source_root/image/before.txt" "$staging/before.txt"

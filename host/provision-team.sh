@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-# shellcheck source=lib/imager.sh
+# shellcheck source=host/lib/imager.sh
 source "$ROOT/host/lib/imager.sh"
 
 disk=''
@@ -14,7 +14,7 @@ while (($#)); do
     --team) team=${2:-}; shift 2 ;;
     --config-dir) config_dir=${2:-}; shift 2 ;;
     -h|--help)
-      printf 'Usage: %s --team 1..10 (--disk /dev/DISK | --config-dir PATH)\n' "$0"
+      printf 'Usage: %s --team 0..9|admin (--disk /dev/DISK | --config-dir PATH)\n' "$0"
       exit 0 ;;
     *) die "Unknown argument: $1" ;;
   esac

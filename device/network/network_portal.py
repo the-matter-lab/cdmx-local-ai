@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import html
 import ipaddress
+import json
 import os
 from pathlib import Path
 import secrets
@@ -18,7 +19,43 @@ from urllib.parse import parse_qs, urlparse
 
 CONFIG_PATH = Path(os.environ.get("CDMX_CONFIG", "/etc/cdmx/workshop.conf"))
 TOKEN_PATH = Path(os.environ.get("CDMX_PORTAL_TOKEN", "/run/cdmx/network-portal-token"))
+LOGO_PATH = Path(os.environ.get("CDMX_PORTAL_LOGO", "/usr/local/share/cdmx/matter-lab-logo.svg"))
 MAX_BODY = 4096
+
+
+def validate_identity(value: object) -> int | str:
+    if value == "admin":
+        return "admin"
+    if isinstance(value, bool):
+        raise ValueError("TEAM must be admin or between 0 and 9")
+    try:
+        team = int(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError) as exc:
+        raise ValueError("TEAM must be admin or between 0 and 9") from exc
+    if team not in range(10) or str(value) != str(team):
+        raise ValueError("TEAM must be admin or between 0 and 9")
+    return team
+
+
+def identity_index(identity: object) -> int:
+    validated = validate_identity(identity)
+    return 10 if validated == "admin" else validated
+
+
+def identity_hostname(identity: object) -> str:
+    validated = validate_identity(identity)
+    return "admin" if validated == "admin" else f"equipo{validated}"
+
+
+def portal_url(identity: object) -> str:
+    return f"http://10.42.{identity_index(identity)}.1:8080/"
+
+
+def captive_api(identity: object) -> str:
+    return json.dumps(
+        {"captive": True, "user-portal-url": portal_url(identity)},
+        separators=(",", ":"),
+    )
 
 
 def read_config(path: Path = CONFIG_PATH) -> dict[str, str]:
@@ -27,13 +64,17 @@ def read_config(path: Path = CONFIG_PATH) -> dict[str, str]:
         if not raw or raw.startswith("#") or "=" not in raw:
             continue
         key, value = raw.split("=", 1)
-        if key in {"TEAM", "AP_SSID", "WIFI_COUNTRY"}:
+        if key in {"TEAM", "AP_SSID", "WIFI_COUNTRY", "NETWORK_INDEX"}:
             result[key] = value
-    team = int(result.get("TEAM", "0"))
-    if team not in range(1, 11):
-        raise ValueError("TEAM must be between 1 and 10")
-    if result.get("AP_SSID") != f"equipo{team}-setup":
+    identity = validate_identity(result.get("TEAM", "0"))
+    hostname = identity_hostname(identity)
+    index = identity_index(identity)
+    if result.get("AP_SSID") != f"{hostname}-setup":
         raise ValueError("AP_SSID does not match TEAM")
+    if result.get("NETWORK_INDEX", str(index)) != str(index):
+        raise ValueError("NETWORK_INDEX does not match TEAM")
+    result["TEAM"] = str(identity)
+    result["NETWORK_INDEX"] = str(index)
     result.setdefault("WIFI_COUNTRY", "MX")
     return result
 
@@ -73,33 +114,6 @@ def wifi_interface() -> str:
         if len(parts) >= 2 and parts[1] == "wifi":
             return parts[0]
     raise RuntimeError("No Wi-Fi interface found")
-
-
-def scan_networks() -> list[tuple[str, str, str]]:
-    iface = wifi_interface()
-    subprocess.run(
-        ["nmcli", "device", "wifi", "rescan", "ifname", iface],
-        check=False,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        timeout=15,
-    )
-    output = subprocess.run(
-        ["nmcli", "-t", "-f", "SSID,SIGNAL,SECURITY", "device", "wifi", "list", "ifname", iface],
-        check=True,
-        capture_output=True,
-        text=True,
-        timeout=20,
-    ).stdout
-    best: dict[str, tuple[str, str, str]] = {}
-    for line in output.splitlines():
-        parts = split_nmcli(line)
-        if len(parts) < 3 or not parts[0]:
-            continue
-        candidate = (parts[0], parts[1], parts[2])
-        if parts[0] not in best or int(parts[1] or 0) > int(best[parts[0]][1] or 0):
-            best[parts[0]] = candidate
-    return sorted(best.values(), key=lambda item: int(item[1] or 0), reverse=True)
 
 
 def validate_credentials(ssid: str, password: str, open_network: bool) -> None:
@@ -162,15 +176,16 @@ def configure_venue(ssid: str, password: str, open_network: bool) -> None:
     )
 
 
-def allowed_client(address: str, team: int) -> bool:
+def allowed_client(address: str, identity: object) -> bool:
     try:
         ip = ipaddress.ip_address(address)
     except ValueError:
         return False
     if ip.is_loopback:
         return True
-    return ip in ipaddress.ip_network(f"10.42.{team}.0/24") or ip in ipaddress.ip_network(
-        f"10.55.{team}.0/24"
+    index = identity_index(identity)
+    return ip in ipaddress.ip_network(f"10.42.{index}.0/24") or ip in ipaddress.ip_network(
+        f"10.55.{index}.0/24"
     )
 
 
@@ -186,9 +201,9 @@ class PortalHandler(BaseHTTPRequestHandler):
         print(f"portal {self.client_address[0]} {fmt % args}", flush=True)
 
     def _allowed(self) -> bool:
-        if allowed_client(self.client_address[0], self.app.team):
+        if allowed_client(self.client_address[0], self.app.identity):
             return True
-        self.send_error(HTTPStatus.FORBIDDEN, "Use the equipo setup or USB network")
+        self.send_error(HTTPStatus.FORBIDDEN, "Use this device's setup or USB network")
         return False
 
     def _send(self, body: str, status: HTTPStatus = HTTPStatus.OK, cookie: bool = False) -> None:
@@ -198,46 +213,73 @@ class PortalHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(payload)))
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
-        self.send_header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'")
+        self.send_header("Content-Security-Policy", "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'")
         if cookie:
             self.send_header("Set-Cookie", f"cdmx_csrf={self.app.token}; Path=/; HttpOnly; SameSite=Strict")
         self.end_headers()
         self.wfile.write(payload)
 
+    def _send_captive_api(self) -> None:
+        payload = captive_api(self.app.identity).encode("utf-8")
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", "application/captive+json")
+        self.send_header("Content-Length", str(len(payload)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.end_headers()
+        self.wfile.write(payload)
+
+    def _send_logo(self) -> None:
+        payload = LOGO_PATH.read_bytes()
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", "image/svg+xml")
+        self.send_header("Content-Length", str(len(payload)))
+        self.send_header("Cache-Control", "public, max-age=86400")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.end_headers()
+        self.wfile.write(payload)
+
+    def _redirect_to_portal(self) -> None:
+        self.send_response(HTTPStatus.FOUND)
+        self.send_header("Location", portal_url(self.app.identity))
+        self.send_header("Content-Length", "0")
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+
     def do_GET(self) -> None:  # noqa: N802
         if not self._allowed():
             return
         path = urlparse(self.path).path
+        if self.server.server_port == 80:
+            self._redirect_to_portal()
+            return
         if path == "/healthz":
             self._send("ok")
+            return
+        if path == "/captive-api":
+            self._send_captive_api()
+            return
+        if path == "/matter-lab-logo.svg":
+            self._send_logo()
             return
         if path not in {"/", "/index.html"}:
             self.send_error(HTTPStatus.NOT_FOUND)
             return
-        try:
-            networks = scan_networks()
-            options = "\n".join(
-                f'<option value="{html.escape(ssid, quote=True)}">{html.escape(ssid)} '
-                f'({html.escape(signal)}%, {html.escape(security or "open")})</option>'
-                for ssid, signal, security in networks
-                if ssid != self.app.config["AP_SSID"]
-            )
-        except Exception:
-            options = ""
-        team = self.app.team
+        hostname = self.app.hostname
+        title = "Admin" if self.app.identity == "admin" else f"Equipo {self.app.identity}"
         body = f"""<!doctype html>
 <html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Equipo {team} network setup</title>
-<style>body{{font:17px system-ui;max-width:36rem;margin:2rem auto;padding:0 1rem;background:#0b1220;color:#e5eefc}}label{{display:block;margin-top:1rem}}input,select,button{{box-sizing:border-box;width:100%;padding:.8rem;margin-top:.35rem;font:inherit}}button{{background:#55d6be;border:0;font-weight:700}}small{{color:#a9bad4}}</style>
-<h1>Equipo {team}</h1><p>Choose the venue Wi-Fi. The setup hotspot will disappear while the board joins it.</p>
+<title>{title} network setup</title>
+<style>body{{font:17px system-ui;max-width:36rem;margin:2rem auto;padding:0 1rem;background:#192b28;color:#fff}}.logo{{display:block;width:min(260px,70vw);height:auto;margin:0 0 2.5rem}}h1{{margin-bottom:.35rem}}p{{color:#dbe6e3}}label{{display:block;margin-top:1rem;font-weight:650}}input,button{{box-sizing:border-box;width:100%;padding:.85rem;margin-top:.4rem;border-radius:7px;font:inherit}}input{{border:1px solid #8ba09b;background:#fff;color:#192b28}}button{{background:#12f98b;color:#192b28;border:0;font-weight:800;cursor:pointer}}small{{color:#b9cbc7}}</style>
+<img class="logo" src="/matter-lab-logo.svg" alt="The Matter Lab">
+<h1>{title}</h1><p>Enter the venue Wi-Fi. The setup hotspot will disappear while the board joins it.</p>
 <form method="post" action="/connect">
 <input type="hidden" name="csrf" value="{html.escape(self.app.token, quote=True)}">
-<label>Detected network<select name="detected"><option value="">Type another SSID</option>{options}</select></label>
-<label>SSID<input name="ssid" maxlength="32" autocomplete="off"></label>
+<label>Wi-Fi name (SSID)<input name="ssid" maxlength="32" autocomplete="off" required autofocus></label>
 <label>Password<input name="password" type="password" maxlength="63" autocomplete="new-password"></label>
 <label><input style="width:auto" name="open" type="checkbox" value="1"> This network is open</label>
-<button type="submit">Connect equipo{team}</button></form>
-<p><small>After connecting your phone to the venue Wi-Fi, open http://equipo{team}.local:6080/vnc.html?autoconnect=1&amp;resize=scale&amp;shared=1</small></p></html>"""
+<button type="submit">Connect {hostname}</button></form>
+<p><small>After connecting your phone to the venue Wi-Fi, open http://{hostname}.local:6080/control.html</small></p></html>"""
         self._send(body, cookie=True)
 
     def do_POST(self) -> None:  # noqa: N802
@@ -260,7 +302,7 @@ class PortalHandler(BaseHTTPRequestHandler):
         if not cookie_token or not secrets.compare_digest(cookie_token.value, self.app.token) or not secrets.compare_digest(form_token, self.app.token):
             self.send_error(HTTPStatus.FORBIDDEN, "Invalid setup token")
             return
-        ssid = values.get("detected", [""])[0] or values.get("ssid", [""])[0]
+        ssid = values.get("ssid", [""])[0]
         password = values.get("password", [""])[0]
         open_network = values.get("open", [""])[0] == "1"
         try:
@@ -269,7 +311,7 @@ class PortalHandler(BaseHTTPRequestHandler):
             self._send(f"<h1>Check the form</h1><p>{html.escape(str(exc))}</p><p><a href='/'>Try again</a></p>", HTTPStatus.BAD_REQUEST)
             return
         self._send(
-            f"<h1>Connecting equipo{self.app.team}</h1><p>Reconnect your device to the venue Wi-Fi, then open <strong>http://equipo{self.app.team}.local:6080/</strong>.</p>"
+            f"<h1>Connecting {self.app.hostname}</h1><p>Reconnect your device to the venue Wi-Fi, then open <strong>http://{self.app.hostname}.local:6080/control.html</strong>.</p>"
         )
         threading.Thread(
             target=self.app.activate_later,
@@ -284,7 +326,9 @@ class PortalServer(ThreadingHTTPServer):
     def __init__(self, address: tuple[str, int], config: dict[str, str], token: str):
         super().__init__(address, PortalHandler)
         self.config = config
-        self.team = int(config["TEAM"])
+        self.identity = validate_identity(config["TEAM"])
+        self.index = identity_index(self.identity)
+        self.hostname = identity_hostname(self.identity)
         self.token = token
 
     @staticmethod
@@ -304,8 +348,16 @@ def main() -> None:
     TOKEN_PATH.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
     TOKEN_PATH.write_text(token + "\n", encoding="ascii")
     TOKEN_PATH.chmod(0o600)
-    server = PortalServer(("0.0.0.0", 8080), config, token)
-    server.serve_forever()
+    portal = PortalServer(("0.0.0.0", 8080), config, token)
+    redirect = PortalServer(("0.0.0.0", 80), config, token)
+    redirect_thread = threading.Thread(target=redirect.serve_forever, daemon=True)
+    redirect_thread.start()
+    try:
+        portal.serve_forever()
+    finally:
+        redirect.shutdown()
+        redirect.server_close()
+        portal.server_close()
 
 
 if __name__ == "__main__":
