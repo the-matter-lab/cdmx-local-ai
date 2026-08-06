@@ -81,7 +81,7 @@ El contenedor no es una aplicación para ejecutar: transporta la imagen
 `cdmx-workshop-golden.img.xz` en partes y su suma SHA-512. El script reconstruye
 la imagen y comprueba la suma antes de habilitar la grabación de tarjetas. Para
 fijar una versión exacta, use por ejemplo
-`CDMX_IMAGE_REF=bestquark/cdmx-radxa-zero3w:2026-08-06.4 ./host/pull-workshop-image.sh`.
+`CDMX_IMAGE_REF=bestquark/cdmx-radxa-zero3w:2026-08-06.5 ./host/pull-workshop-image.sh`.
 
 No se usa una placa maestra ni una tarjeta SD maestra física. La construcción
 se ejecuta en un entorno Linux ARM64 aislado en la Mac e incluye la clave SSH
