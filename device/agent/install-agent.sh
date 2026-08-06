@@ -95,7 +95,10 @@ if id cdmx >/dev/null 2>&1; then
 fi
 
 install -d -o root -g cdmx-agent -m 0750 /etc/cdmx-picoclaw
-install -d -o cdmx-agent -g cdmx-agent -m 0750 /var/lib/cdmx-picoclaw
+# The desktop user is in cdmx-workspace and needs traverse-only access to reach
+# the shared workspace. It cannot list the agent state directory or read agent
+# files because the group receives execute permission only.
+install -d -o cdmx-agent -g cdmx-workspace -m 0710 /var/lib/cdmx-picoclaw
 install -d -o cdmx-agent -g cdmx-workspace -m 2770 /var/lib/cdmx-picoclaw/workspace
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"

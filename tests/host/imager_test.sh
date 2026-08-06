@@ -68,6 +68,12 @@ else
 fi
 assert_eq OPEN_ACCESS=1 "$(grep '^OPEN_ACCESS=' "$ROOT/device/personalize.sh")" 'clones keep the passwordless setup AP'
 assert_eq RuntimeDirectory=cdmx "$(grep '^RuntimeDirectory=' "$ROOT/device/systemd/cdmx-network-portal.service")" 'portal runtime directory exists before sandboxing'
+assert_eq 'install -d -o cdmx-agent -g cdmx-workspace -m 0710 /var/lib/cdmx-picoclaw' \
+  "$(grep '^install -d -o cdmx-agent -g cdmx-workspace -m 0710 /var/lib/cdmx-picoclaw$' "$ROOT/device/agent/install-agent.sh")" \
+  'desktop can traverse the agent state directory to reach its workspace'
+assert_eq '    os.chmod(args.state_dir, 0o710)' \
+  "$(grep '^    os.chmod(args.state_dir, 0o710)$' "$ROOT/device/agent/setup.py")" \
+  'agent reconfiguration preserves desktop traversal access'
 
 if (( failures > 0 )); then
   printf '%s test(s) failed\n' "$failures" >&2

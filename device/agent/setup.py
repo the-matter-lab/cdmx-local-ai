@@ -252,12 +252,15 @@ def main(argv: list[str] | None = None) -> int:
 
     service = pwd.getpwnam(SERVICE_USER)
     group = grp.getgrnam(SERVICE_GROUP)
+    workspace_group = grp.getgrnam("cdmx-workspace")
     args.config_dir.mkdir(parents=True, exist_ok=True, mode=0o750)
     os.chown(args.config_dir, 0, group.gr_gid)
     os.chmod(args.config_dir, 0o750)
     (args.state_dir / "workspace").mkdir(parents=True, exist_ok=True, mode=0o750)
-    os.chown(args.state_dir, service.pw_uid, group.gr_gid)
-    workspace_group = grp.getgrnam("cdmx-workspace")
+    # cdmx needs traverse-only access to the parent so its desktop can enter
+    # the group-writable workspace, without exposing other agent state.
+    os.chown(args.state_dir, service.pw_uid, workspace_group.gr_gid)
+    os.chmod(args.state_dir, 0o710)
     os.chown(args.state_dir / "workspace", service.pw_uid, workspace_group.gr_gid)
     os.chmod(args.state_dir / "workspace", 0o2770)
     atomic_write(config_path, json.dumps(config, indent=2) + "\n", 0o640, 0, group.gr_gid)
