@@ -8,6 +8,7 @@ update_repo() {
 
     if [[ -d $target/.git ]]; then
         printf '\n==> Updating %s\n' "$name"
+        git -C "$target" remote set-url origin "$url"
         git -C "$target" pull --ff-only
     elif [[ -e $target ]]; then
         printf '\nERROR: %s already exists but is not a Git repository.\n' "$target" >&2
@@ -20,7 +21,7 @@ update_repo() {
 }
 
 mkdir -p "$WORKSPACE"
-update_repo cdmx-bayesopt https://github.com/aspuru-guzik-group/cdmx-bayesopt.git
-update_repo cdmx-local-ai https://github.com/aspuru-guzik-group/cdmx-local-ai.git
+update_repo cdmx-bayesopt https://github.com/the-matter-lab/cdmx-bayesopt.git
+update_repo cdmx-local-ai https://github.com/the-matter-lab/cdmx-local-ai.git
 
 printf '\nReady. Workshop code is in:\n%s\n' "$WORKSPACE"

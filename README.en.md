@@ -174,7 +174,7 @@ access point.
 ## Bayesian-optimization example
 
 The reproducible example that participants can clone and run lives in
-[`aspuru-guzik-group/cdmx-bayesopt`](https://github.com/aspuru-guzik-group/cdmx-bayesopt).
+[`the-matter-lab/cdmx-bayesopt`](https://github.com/the-matter-lab/cdmx-bayesopt).
 It is designed specifically for a 1 GB ZERO 3W and can drive either a test
 function or a physical experiment through a Python function.
 

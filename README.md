@@ -180,7 +180,7 @@ el punto de acceso de configuración.
 ## Ejemplo de optimización bayesiana
 
 El ejemplo reproducible que los participantes pueden clonar y ejecutar vive en
-[`aspuru-guzik-group/cdmx-bayesopt`](https://github.com/aspuru-guzik-group/cdmx-bayesopt).
+[`the-matter-lab/cdmx-bayesopt`](https://github.com/the-matter-lab/cdmx-bayesopt).
 Está diseñada específicamente para la ZERO 3W de 1 GB y puede controlar una
 función de prueba o un experimento físico mediante una función de Python.
 

@@ -99,10 +99,21 @@ assert_eq 1 "$(grep -c 'Download/update workshop code' "$ROOT/device/desktop/men
   'desktop menu includes the one-click repository downloader'
 assert_eq 2 "$(grep -c '^ *update_repo cdmx-' "$ROOT/device/desktop/fetch-workshop-repos.sh")" \
   'repository downloader includes both workshop repositories'
+assert_eq 2 "$(grep -c 'https://github.com/the-matter-lab/cdmx-' "$ROOT/device/desktop/fetch-workshop-repos.sh")" \
+  'SD-card downloader uses the Matter Lab organization'
+old_org=aspuru-guzik'-group'
+if grep -Rqs --exclude-dir=.git --exclude-dir=image "$old_org" "$ROOT"; then
+  printf 'not ok - old workshop GitHub organization remains in tracked source\n'
+  failures=$((failures + 1))
+else
+  printf 'ok - tracked source contains no old workshop GitHub organization\n'
+fi
 assert_eq '1280 x 720' "$(file "$ROOT/device/desktop/matter-lab-workshop-wallpaper.png" | sed -n 's/.*PNG image data, \([0-9][0-9]* x [0-9][0-9]*\),.*/\1/p')" \
   'Matter Lab wallpaper has the noVNC desktop dimensions'
 assert_eq 1 "$(grep -c 'Matter Lab International Conference 2026 ∙ Satellite School' "$ROOT/device/desktop/matter-lab-workshop-wallpaper.svg")" \
   'wallpaper carries the conference title'
+assert_eq 1 "$(grep -c 'text-anchor="end"' "$ROOT/device/desktop/matter-lab-workshop-wallpaper.svg")" \
+  'wallpaper conference title is right aligned'
 if ! grep -Eq 'curl feh geany git' "$ROOT/device/install.sh" || ! grep -Eq '^[[:space:]]*tint2 tmux ' "$ROOT/device/install.sh"; then
   printf 'not ok - graphical editor or desktop task bar is missing from the workshop image\n'
   failures=$((failures + 1))

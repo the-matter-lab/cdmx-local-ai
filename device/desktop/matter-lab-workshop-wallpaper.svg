@@ -6,7 +6,8 @@
   <rect width="1280" height="720" fill="#000000"/>
   <image x="32" y="24" width="301" height="79"
          href="matter-lab-logo.svg" xlink:href="matter-lab-logo.svg"/>
-  <text x="32" y="662"
+  <text x="1248" y="662"
+        text-anchor="end"
         fill="#ffffff"
         font-family="DejaVu Sans, Arial, sans-serif"
         font-size="21"

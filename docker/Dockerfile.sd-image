@@ -3,7 +3,7 @@ FROM scratch
 ARG IMAGE_VERSION=dev
 LABEL org.opencontainers.image.title="CDMX Radxa ZERO 3W workshop SD image" \
       org.opencontainers.image.description="Compressed, flashable RadxaOS workshop image and SHA-512 checksum" \
-      org.opencontainers.image.source="https://github.com/aspuru-guzik-group/cdmx-local-ai" \
+      org.opencontainers.image.source="https://github.com/the-matter-lab/cdmx-local-ai" \
       org.opencontainers.image.version="${IMAGE_VERSION}"
 
 COPY cdmx-workshop-golden.img.xz.sha512 /image/cdmx-workshop-golden.img.xz.sha512
