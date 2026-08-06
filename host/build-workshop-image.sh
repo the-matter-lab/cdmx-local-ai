@@ -69,7 +69,7 @@ docker run --rm --privileged \
     -v "$key_file:/instructor.pub:ro" \
     ubuntu:24.04 \
     /bin/bash /source/host/build-image-in-container.sh \
-    /images/cdmx-workshop-golden.img /source.tar /instructor.pub
+    "/images/$(basename "$output_raw")" /source.tar /instructor.pub
 
 note 'Compressing and checking the workshop image'
 xz -T0 -1 -c -- "$output_raw" > "$output_partial"

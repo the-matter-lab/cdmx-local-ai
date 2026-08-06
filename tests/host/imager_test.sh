@@ -80,6 +80,9 @@ assert_eq 'git -C "$ROOT" archive --format=tar HEAD > "$source_archive_partial"'
 assert_eq 'output_raw=$(mktemp "$ROOT/image/cache/cdmx-workshop-golden.XXXXXX.img")' \
   "$(grep '^output_raw=$(mktemp ' "$ROOT/host/build-workshop-image.sh")" \
   'each image build uses an isolated raw working file'
+assert_eq '    "/images/$(basename "$output_raw")" /source.tar /instructor.pub' \
+  "$(grep -F '    "/images/$(basename "$output_raw")" /source.tar /instructor.pub' "$ROOT/host/build-workshop-image.sh")" \
+  'container receives the isolated raw image path'
 assert_eq 2 "$(grep -c '<menu>root-menu</menu>' "$ROOT/device/desktop/openbox.xml")" \
   'desktop launcher is available from the keyboard and right-click'
 assert_eq 1 "$(grep -c '<keybind key="C-A-t">' "$ROOT/device/desktop/openbox.xml")" \
