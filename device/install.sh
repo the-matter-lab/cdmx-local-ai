@@ -76,9 +76,9 @@ if ! $skip_upgrade; then
     apt-get -y full-upgrade
 fi
 apt-get install -y --no-install-recommends \
-    avahi-daemon bash ca-certificates curl feh git jq locales nano \
-    network-manager novnc openbox openssh-server python3 python3-matplotlib \
-    python3-numpy rfkill sudo tigervnc-standalone-server \
+    avahi-daemon bash ca-certificates curl git jq locales nano \
+    network-manager novnc openbox openssh-server python3 \
+    rfkill sudo tigervnc-standalone-server \
     tmux ufw unattended-upgrades websockify x11-xserver-utils xauth xterm \
     zram-tools
 
@@ -225,7 +225,7 @@ if ! $offline_image; then
 fi
 systemctl enable ssh avahi-daemon NetworkManager zramswap \
     cdmx-personalize.service cdmx-first-boot.service cdmx-network.service cdmx-network-portal.service \
-    cdmx-usb-rescue.service cdmx-demo.service cdmx-desktop.service cdmx-novnc.service
+    cdmx-usb-rescue.service cdmx-desktop.service cdmx-novnc.service
 if [[ -f /etc/systemd/system/cdmx-picoclaw.service ]]; then
     systemctl enable cdmx-picoclaw.service
 fi

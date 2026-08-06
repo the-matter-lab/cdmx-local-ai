@@ -94,7 +94,4 @@ xterm -title 'Channel + Workspace' -geometry 80x20+0+384 \
     -e "$ROOT/device/desktop/code-viewer.sh" &
 CHILDREN="$CHILDREN $!"
 
-"$ROOT/device/desktop/show-demo.sh" &
-CHILDREN="$CHILDREN $!"
-
 wait "$XVNC_PID"

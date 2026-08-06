@@ -10,9 +10,8 @@
 - Grabe `equipo0` a `equipo9`; nunca arranque dos tarjetas con el mismo número.
 - Arranque cada tarjeta dos veces, incluida una prueba intencional de desconexión
   y reconexión después de que hayan terminado todas las escrituras.
-- Verifique `.local`, SSH, noVNC de control, noVNC
-  de solo lectura, la demostración bayesiana, zram y la recuperación del punto
-  de acceso de configuración.
+- Verifique `.local`, SSH, noVNC de control, noVNC de solo lectura, zram y la
+  recuperación del punto de acceso de configuración.
 - Si usará el rescate por USB, active en cada placa la superposición de
   periférico OTG de Radxa y el servicio NCM, y después haga pruebas con equipos
   macOS y Windows.
@@ -65,7 +64,7 @@ tarjeta. Nunca las agregue a la imagen local ni al repositorio.
 ```bash
 sudo cdmx-network status
 sudo cdmx-network reset
-sudo systemctl restart cdmx-desktop cdmx-novnc cdmx-demo
+sudo systemctl restart cdmx-desktop cdmx-novnc
 sudo systemctl restart cdmx-picoclaw
 sudo journalctl -u cdmx-network -u cdmx-picoclaw -n 100 --no-pager
 sudo reboot

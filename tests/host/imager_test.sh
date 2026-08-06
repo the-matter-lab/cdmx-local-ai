@@ -89,6 +89,13 @@ if ! grep -Eq 'locales nano \\' "$ROOT/device/install.sh"; then
 else
   printf 'ok - Nano is guaranteed in the workshop image\n'
 fi
+if grep -Rq 'cdmx-demo\|show-demo.sh\|Bayesian Optimization' \
+    "$ROOT/device/desktop" "$ROOT/device/systemd" "$ROOT/device/install.sh"; then
+  printf 'not ok - the default desktop still starts the BayesOpt animation\n'
+  failures=$((failures + 1))
+else
+  printf 'ok - the default desktop does not start the BayesOpt animation\n'
+fi
 
 if (( failures > 0 )); then
   printf '%s test(s) failed\n' "$failures" >&2

@@ -1,7 +1,6 @@
 [Unit]
 Description=CDMX shared TigerVNC workshop desktop
-After=local-fs.target cdmx-demo.service
-Wants=cdmx-demo.service
+After=local-fs.target
 StartLimitIntervalSec=60
 StartLimitBurst=10
 

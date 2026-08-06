@@ -16,10 +16,6 @@
       <position force="yes"><x>0</x><y>384</y></position>
       <size><width>640</width><height>336</height></size>
     </application>
-    <application title="Bayesian Optimization">
-      <position force="yes"><x>640</x><y>52</y></position>
-      <size><width>640</width><height>668</height></size>
-    </application>
   </applications>
   <keyboard>
     <keybind key="C-A-t">

@@ -20,9 +20,9 @@ always generated and stored locally.
   the team.
 - `ssh cdmx@equipoN.local` — terminal access from the same LAN.
 - A 1280×720 Openbox desktop with a Pi terminal, channel and workspace
-  activity, CPU/RAM/temperature status, and a live 2-D Bayesian-optimization
-  demonstration. Right-click the background to open terminals, the Nano editor,
-  Pi Agent, or the system monitor. `Ctrl+Alt+T` opens a new terminal.
+  activity, and CPU/RAM/temperature status. Right-click the background to open
+  terminals, the Nano editor, Pi Agent, or the system monitor. `Ctrl+Alt+T`
+  opens a new terminal.
 - PicoClaw as the primary Telegram channel agent; Discord is optional.
 - Pi as an optional local interactive coding agent.
 
@@ -161,9 +161,9 @@ For team `N`:
 Run `sudo cdmx-network reset` to forget the venue Wi-Fi and restore the setup
 access point.
 
-## Bayesian-optimization demonstration
+## Bayesian-optimization example
 
-The reproducible demonstration shown on the desktop lives in
+The reproducible example that participants can clone and run lives in
 [`aspuru-guzik-group/cdmx-bayesopt`](https://github.com/aspuru-guzik-group/cdmx-bayesopt).
 It is designed specifically for a 1 GB ZERO 3W and can drive either a test
 function or a physical experiment through a Python function.

@@ -22,10 +22,9 @@ generan y guardan localmente.
   el resto del equipo.
 - `ssh cdmx@equipoN.local` — acceso por terminal desde la misma red LAN.
 - Un escritorio Openbox de 1280×720 con una terminal Pi, actividad del canal y
-  del espacio de trabajo, estado de CPU/RAM/temperatura y una demostración en
-  vivo de optimización bayesiana en 2D. Haga clic derecho en el fondo para abrir
-  terminales, el editor Nano, Pi Agent y el monitor del sistema. `Ctrl+Alt+T`
-  abre una terminal nueva.
+  del espacio de trabajo y estado de CPU/RAM/temperatura. Haga clic derecho en
+  el fondo para abrir terminales, el editor Nano, Pi Agent y el monitor del
+  sistema. `Ctrl+Alt+T` abre una terminal nueva.
 - PicoClaw como agente principal del canal de Telegram; Discord es opcional.
 - Pi como agente de programación interactivo local opcional.
 
@@ -168,9 +167,9 @@ Para el equipo `N`:
 Ejecute `sudo cdmx-network reset` para olvidar el Wi-Fi del recinto y restaurar
 el punto de acceso de configuración.
 
-## Demostración de optimización bayesiana
+## Ejemplo de optimización bayesiana
 
-La demostración reproducible que aparece en el escritorio vive en
+El ejemplo reproducible que los participantes pueden clonar y ejecutar vive en
 [`aspuru-guzik-group/cdmx-bayesopt`](https://github.com/aspuru-guzik-group/cdmx-bayesopt).
 Está diseñada específicamente para la ZERO 3W de 1 GB y puede controlar una
 función de prueba o un experimento físico mediante una función de Python.
