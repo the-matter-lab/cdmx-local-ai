@@ -21,7 +21,8 @@ always generated and stored locally.
 - `ssh cdmx@equipoN.local` — terminal access from the same LAN.
 - A 1280×720 Openbox desktop with a Pi terminal, channel and workspace
   activity, CPU/RAM/temperature status, and a live 2-D Bayesian-optimization
-  demonstration.
+  demonstration. Right-click the background to open terminals, the Nano editor,
+  Pi Agent, or the system monitor. `Ctrl+Alt+T` opens a new terminal.
 - PicoClaw as the primary Telegram channel agent; Discord is optional.
 - Pi as an optional local interactive coding agent.
 

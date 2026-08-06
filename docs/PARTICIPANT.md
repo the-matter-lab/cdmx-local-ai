@@ -12,6 +12,12 @@ Sustituya `N` por el número de su equipo.
 4. Envíe un mensaje que mencione al bot de Telegram de su equipo. El bot solo
    funciona para las cinco personas autorizadas por el instructor.
 
+En el escritorio noVNC, haga clic derecho en cualquier parte vacía del fondo
+para abrir el menú de aplicaciones. Desde ahí puede abrir una terminal, una
+terminal dentro del espacio de trabajo, el editor Nano, Pi Agent o el monitor
+del sistema. También puede usar `Ctrl+Alt+T` para abrir una terminal nueva,
+`Ctrl+Alt+E` para abrir el editor y `Super+Espacio` para mostrar el menú.
+
 Otros medios de acceso:
 
 ```text

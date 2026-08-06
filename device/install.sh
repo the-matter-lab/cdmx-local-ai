@@ -76,7 +76,7 @@ if ! $skip_upgrade; then
     apt-get -y full-upgrade
 fi
 apt-get install -y --no-install-recommends \
-    avahi-daemon bash ca-certificates curl feh git jq locales \
+    avahi-daemon bash ca-certificates curl feh git jq locales nano \
     network-manager novnc openbox openssh-server python3 python3-matplotlib \
     python3-numpy rfkill sudo tigervnc-standalone-server \
     tmux ufw unattended-upgrades websockify x11-xserver-utils xauth xterm \

@@ -77,6 +77,18 @@ assert_eq '    os.chmod(args.state_dir, 0o710)' \
 assert_eq 'git -C "$ROOT" archive --format=tar HEAD > "$source_archive_partial"' \
   "$(grep '^git -C \"\$ROOT\" archive --format=tar HEAD > \"\$source_archive_partial\"$' "$ROOT/host/build-workshop-image.sh")" \
   'image builds use an immutable tracked-source snapshot'
+assert_eq 2 "$(grep -c '<menu>root-menu</menu>' "$ROOT/device/desktop/openbox.xml")" \
+  'desktop launcher is available from the keyboard and right-click'
+assert_eq 1 "$(grep -c '<keybind key="C-A-t">' "$ROOT/device/desktop/openbox.xml")" \
+  'desktop has a new-terminal shortcut'
+assert_eq 1 "$(grep -c 'Workspace Editor (Nano)' "$ROOT/device/desktop/menu.xml")" \
+  'desktop menu includes a workspace editor'
+if ! grep -Eq 'locales nano \\' "$ROOT/device/install.sh"; then
+  printf 'not ok - Nano is not guaranteed in the workshop image\n'
+  failures=$((failures + 1))
+else
+  printf 'ok - Nano is guaranteed in the workshop image\n'
+fi
 
 if (( failures > 0 )); then
   printf '%s test(s) failed\n' "$failures" >&2
