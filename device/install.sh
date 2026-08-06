@@ -76,11 +76,11 @@ if ! $skip_upgrade; then
     apt-get -y full-upgrade
 fi
 apt-get install -y --no-install-recommends \
-    avahi-daemon bash ca-certificates curl git i2c-tools jq locales nano \
+    avahi-daemon bash ca-certificates curl geany git i2c-tools jq locales nano \
     network-manager novnc openbox openssh-server python3 python3-matplotlib \
     python3-numpy python3-pil python3-pip python3-smbus python3-spidev \
     python3-venv rfkill sudo tigervnc-standalone-server \
-    tmux ufw unattended-upgrades websockify x11-xserver-utils xauth xterm \
+    tint2 tmux ufw unattended-upgrades websockify x11-xserver-utils xauth xterm \
     zram-tools
 
 if ! id "$workshop_user" >/dev/null 2>&1; then

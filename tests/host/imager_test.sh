@@ -85,15 +85,21 @@ assert_eq '    "/images/$(basename "$output_raw")" /source.tar /instructor.pub' 
   'container receives the isolated raw image path'
 assert_eq 2 "$(grep -c '<menu>root-menu</menu>' "$ROOT/device/desktop/openbox.xml")" \
   'desktop launcher is available from the keyboard and right-click'
+assert_eq 3 "$(sed -n 's:.*<number>\([0-9][0-9]*\)</number>.*:\1:p' "$ROOT/device/desktop/openbox.xml")" \
+  'desktop provides WORK, AGENT, and RUN workspaces'
+assert_eq 1 "$(grep -c '<mousebind button="Left" action="Drag"><action name="Move"/></mousebind>' "$ROOT/device/desktop/openbox.xml")" \
+  'window title bars can be dragged normally'
+assert_eq 1 "$(grep -c '<keybind key="A-Tab">' "$ROOT/device/desktop/openbox.xml")" \
+  'Alt-Tab switches between open applications'
 assert_eq 1 "$(grep -c '<keybind key="C-A-t">' "$ROOT/device/desktop/openbox.xml")" \
   'desktop has a new-terminal shortcut'
-assert_eq 1 "$(grep -c 'Workspace Editor (Nano)' "$ROOT/device/desktop/menu.xml")" \
-  'desktop menu includes a workspace editor'
-if ! grep -Eq 'locales nano \\' "$ROOT/device/install.sh"; then
-  printf 'not ok - Nano is not guaranteed in the workshop image\n'
+assert_eq 1 "$(grep -c 'Code Editor — Geany' "$ROOT/device/desktop/menu.xml")" \
+  'desktop menu includes a graphical code editor'
+if ! grep -Eq 'curl geany git' "$ROOT/device/install.sh" || ! grep -Eq '^[[:space:]]*tint2 tmux ' "$ROOT/device/install.sh"; then
+  printf 'not ok - graphical editor or desktop task bar is missing from the workshop image\n'
   failures=$((failures + 1))
 else
-  printf 'ok - Nano is guaranteed in the workshop image\n'
+  printf 'ok - graphical editor and desktop task bar are guaranteed in the workshop image\n'
 fi
 if grep -Rq 'cdmx-demo\|show-demo.sh\|Bayesian Optimization' \
     "$ROOT/device/desktop" "$ROOT/device/systemd" "$ROOT/device/install.sh"; then

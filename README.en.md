@@ -21,18 +21,22 @@ always generated and stored locally.
 - `ssh cdmx@equipoN.local` — terminal access from the same LAN.
 - Passwordless `sudo` for installing exercise tools and configuring local
   hardware.
-- A 1280×720 Openbox desktop with a Pi terminal, channel and workspace
-  activity, and CPU/RAM/temperature status. Right-click the background to open
-  terminals, the Nano editor, Pi Agent, or the system monitor. `Ctrl+Alt+T`
-  opens a new terminal.
+- A 1280×720 Openbox desktop with three workspaces on a clickable bottom bar:
+  **WORK** for code, **AGENT** for Pi Agent and channel activity, and **RUN**
+  for experiments and CPU/RAM/temperature monitoring. Windows have normal
+  title bars and can be moved, resized, minimized, maximized, and selected with
+  `Alt+Tab`. Right-click the background to open terminals, the Geany or Nano
+  editor, Pi Agent, or the system monitor. `Ctrl+Alt+T` opens a new terminal.
 - PicoClaw as the primary Telegram channel agent; Discord is optional.
 - Pi as an optional local interactive coding agent.
 - `cdmx-bayesopt` dependencies and the ZERO 3W I2C4-M0/SPI3-M1 interfaces
   prepared for the color lab.
 
-The single shared desktop is intentional. Five graphical sessions plus the
-agents do not fit comfortably in 1 GB; one person controls the desktop while
-the other four watch and send instructions through the team channel.
+The single shared graphical session is intentional, but it contains the three
+independent workspaces above so the team can organize its windows. Five
+separate graphical sessions plus the agents do not fit comfortably in 1 GB;
+one person controls the shared session while the other four watch and send
+instructions through the team channel.
 
 ## Operating system
 

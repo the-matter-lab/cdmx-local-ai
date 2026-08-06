@@ -23,19 +23,23 @@ generan y guardan localmente.
 - `ssh cdmx@equipoN.local` — acceso por terminal desde la misma red LAN.
 - `sudo` sin contraseña para instalar las herramientas del ejercicio y
   configurar el hardware local.
-- Un escritorio Openbox de 1280×720 con una terminal Pi, actividad del canal y
-  del espacio de trabajo y estado de CPU/RAM/temperatura. Haga clic derecho en
-  el fondo para abrir terminales, el editor Nano, Pi Agent y el monitor del
+- Un escritorio Openbox de 1280×720 con tres espacios en una barra inferior:
+  **WORK** para código, **AGENT** para Pi Agent y la actividad del canal, y
+  **RUN** para experimentos y el monitor de CPU/RAM/temperatura. Las ventanas
+  tienen barras de título normales y se pueden mover, redimensionar, minimizar,
+  maximizar y seleccionar con `Alt+Tab`. Haga clic derecho en el fondo para
+  abrir terminales, los editores Geany o Nano, Pi Agent y el monitor del
   sistema. `Ctrl+Alt+T` abre una terminal nueva.
 - PicoClaw como agente principal del canal de Telegram; Discord es opcional.
 - Pi como agente de programación interactivo local opcional.
 - Dependencias de `cdmx-bayesopt` y las interfaces I2C4-M0/SPI3-M1 de la ZERO
   3W preparadas para el laboratorio de color.
 
-El uso de un solo escritorio compartido es intencional. Cinco sesiones gráficas
-más los agentes no caben cómodamente en 1 GB; una persona controla el escritorio
-mientras las otras cuatro observan y envían instrucciones por el canal del
-equipo.
+El uso de una sola sesión gráfica compartida es intencional, pero contiene los
+tres espacios independientes anteriores para organizar las ventanas. Cinco
+sesiones gráficas separadas más los agentes no caben cómodamente en 1 GB; una
+persona controla la sesión compartida mientras las otras cuatro observan y
+envían instrucciones por el canal del equipo.
 
 ## Sistema operativo
 

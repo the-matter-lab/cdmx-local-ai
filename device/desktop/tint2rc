@@ -1,0 +1,67 @@
+# Three-workspace task bar for the workshop desktop.
+rounded = 0
+border_width = 0
+background_color = #111827 100
+border_color = #111827 100
+
+rounded = 4
+border_width = 0
+background_color = #1f2937 100
+border_color = #1f2937 100
+
+rounded = 4
+border_width = 0
+background_color = #2563eb 100
+border_color = #2563eb 100
+
+panel_items = TSC
+panel_monitor = all
+panel_position = bottom center horizontal
+panel_size = 100% 34
+panel_margin = 0 0
+panel_padding = 4 2 4
+panel_background_id = 1
+panel_layer = top
+panel_dock = 1
+wm_menu = 1
+
+taskbar_mode = multi_desktop
+taskbar_padding = 2 1 2
+taskbar_background_id = 0
+taskbar_active_background_id = 0
+taskbar_name = 1
+taskbar_name_padding = 9 4
+taskbar_name_background_id = 2
+taskbar_name_active_background_id = 3
+taskbar_name_font = Sans Bold 9
+taskbar_name_font_color = #dbeafe 100
+taskbar_name_active_font_color = #ffffff 100
+
+task_icon = 0
+task_text = 1
+task_centered = 1
+task_maximum_size = 170 30
+task_padding = 8 2 4
+task_background_id = 0
+task_active_background_id = 3
+task_font = Sans 9
+task_font_color = #d1d5db 100
+task_active_font_color = #ffffff 100
+
+systray_padding = 5 2 5
+systray_background_id = 0
+systray_sort = ascending
+systray_icon_size = 18
+
+time1_format = %H:%M
+time1_font = Sans Bold 10
+clock_font_color = #f9fafb 100
+clock_padding = 10 0
+clock_background_id = 0
+clock_tooltip = %A, %d %B %Y
+
+mouse_left = toggle_iconify
+mouse_middle = close
+mouse_right = none
+mouse_scroll_up = toggle
+mouse_scroll_down = iconify

@@ -12,11 +12,18 @@ Sustituya `N` por el número de su equipo.
 4. Envíe un mensaje que mencione al bot de Telegram de su equipo. El bot solo
    funciona para las cinco personas autorizadas por el instructor.
 
-En el escritorio noVNC, haga clic derecho en cualquier parte vacía del fondo
-para abrir el menú de aplicaciones. Desde ahí puede abrir una terminal, una
-terminal dentro del espacio de trabajo, el editor Nano, Pi Agent o el monitor
-del sistema. También puede usar `Ctrl+Alt+T` para abrir una terminal nueva,
-`Ctrl+Alt+E` para abrir el editor y `Super+Espacio` para mostrar el menú.
+El escritorio noVNC se organiza en tres espacios visibles en la barra inferior:
+`WORK` para código, `AGENT` para Pi Agent y el canal, y `RUN` para experimentos
+y el monitor del sistema. Haga clic en sus nombres para cambiar de espacio.
+Arrastre una ventana desde su barra de título, redimensiónela desde los bordes y
+use `Alt+Tab` para cambiar de ventana. También puede usar `Ctrl+Alt+←/→` para
+cambiar de espacio y `Super+1/2/3` para ir directamente a uno.
+
+Haga clic derecho en cualquier parte vacía del fondo para abrir el menú de
+aplicaciones. Desde ahí puede abrir una terminal, una terminal dentro del
+espacio de trabajo, los editores Geany o Nano, Pi Agent o el monitor del sistema.
+`Ctrl+Alt+T` abre una terminal nueva, `Ctrl+Alt+E` abre Geany y `Super+Espacio`
+muestra el menú.
 
 Otros medios de acceso:
 

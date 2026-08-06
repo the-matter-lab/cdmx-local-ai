@@ -32,7 +32,7 @@ if [ -z "$XVNC" ]; then
     echo "TigerVNC server not found (expected Xtigervnc or Xvnc)." >&2
     exit 69
 fi
-for command_name in mcookie xauth openbox xterm xsetroot; do
+for command_name in mcookie xauth openbox tint2 xterm xsetroot; do
     if ! command -v "$command_name" >/dev/null 2>&1; then
         echo "Required desktop command not found: $command_name" >&2
         exit 69
@@ -78,20 +78,32 @@ done
 openbox --config-file "$ROOT/device/desktop/openbox.xml" &
 CHILDREN="$CHILDREN $!"
 
+tint2 -c "$ROOT/device/desktop/tint2rc" &
+CHILDREN="$CHILDREN $!"
+
 xsetroot -solid '#111827'
 xterm -title 'System Status' -geometry 160x3+0+0 \
     -fa Monospace -fs 9 -bg '#111827' -fg '#86efac' \
     -e "$ROOT/device/desktop/system-status.sh" &
 CHILDREN="$CHILDREN $!"
 
-xterm -title 'Pi Agent' -geometry 80x21+0+54 \
+"$ROOT/device/desktop/open-terminal.sh" workspace &
+CHILDREN="$CHILDREN $!"
+
+xterm -title 'Pi Agent' -geometry 80x38+0+54 \
     -fa Monospace -fs 10 -bg '#0b1020' -fg '#e5e7eb' \
     -e "$ROOT/device/desktop/pi-terminal.sh" &
 CHILDREN="$CHILDREN $!"
 
-xterm -title 'Channel + Workspace' -geometry 80x20+0+384 \
+xterm -title 'Channel + Workspace' -geometry 80x38+640+54 \
     -fa Monospace -fs 9 -bg '#0b1020' -fg '#bfdbfe' \
     -e "$ROOT/device/desktop/code-viewer.sh" &
+CHILDREN="$CHILDREN $!"
+
+"$ROOT/device/desktop/open-terminal.sh" experiment &
+CHILDREN="$CHILDREN $!"
+
+"$ROOT/device/desktop/open-monitor.sh" &
 CHILDREN="$CHILDREN $!"
 
 wait "$XVNC_PID"

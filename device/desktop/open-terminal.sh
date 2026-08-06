@@ -5,10 +5,16 @@ WORKSPACE="${CDMX_WORKSPACE:-/var/lib/cdmx-picoclaw/workspace}"
 START_DIR="$HOME"
 TITLE='Workshop Terminal'
 
-if [ "${1:-}" = workspace ] && [ -x "$WORKSPACE" ]; then
-    START_DIR="$WORKSPACE"
-    TITLE='Workspace Terminal'
-fi
+case "${1:-}" in
+    workspace)
+        [ ! -d "$WORKSPACE" ] || START_DIR="$WORKSPACE"
+        TITLE='Workspace Terminal'
+        ;;
+    experiment)
+        [ ! -d "$WORKSPACE" ] || START_DIR="$WORKSPACE"
+        TITLE='Experiment Terminal'
+        ;;
+esac
 
 cd "$START_DIR"
 exec xterm -title "$TITLE" -geometry 100x30 \

@@ -1,51 +1,134 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <openbox_config xmlns="http://openbox.org/3.4/rc">
-  <focus><focusNew>yes</focusNew><followMouse>no</followMouse></focus>
-  <desktops><number>1</number></desktops>
+  <focus>
+    <focusNew>yes</focusNew>
+    <followMouse>no</followMouse>
+    <raiseOnFocus>no</raiseOnFocus>
+  </focus>
+  <desktops>
+    <number>3</number>
+    <firstdesk>1</firstdesk>
+    <names>
+      <name>WORK</name>
+      <name>AGENT</name>
+      <name>RUN</name>
+    </names>
+    <popupTime>875</popupTime>
+  </desktops>
   <applications>
     <application title="System Status">
-      <decor>no</decor><layer>above</layer>
+      <decor>no</decor>
+      <layer>above</layer>
+      <desktop>all</desktop>
+      <skip_taskbar>yes</skip_taskbar>
+      <skip_pager>yes</skip_pager>
       <position force="yes"><x>0</x><y>0</y></position>
       <size><width>1280</width><height>52</height></size>
     </application>
-    <application title="Pi Agent">
+    <application title="Workspace Terminal">
+      <desktop>1</desktop>
       <position force="yes"><x>0</x><y>52</y></position>
-      <size><width>640</width><height>332</height></size>
+      <size><width>1280</width><height>634</height></size>
+    </application>
+    <application title="Pi Agent">
+      <desktop>2</desktop>
+      <position force="yes"><x>0</x><y>52</y></position>
+      <size><width>640</width><height>634</height></size>
     </application>
     <application title="Channel + Workspace">
-      <position force="yes"><x>0</x><y>384</y></position>
-      <size><width>640</width><height>336</height></size>
+      <desktop>2</desktop>
+      <position force="yes"><x>640</x><y>52</y></position>
+      <size><width>640</width><height>634</height></size>
+    </application>
+    <application title="Experiment Terminal">
+      <desktop>3</desktop>
+      <position force="yes"><x>0</x><y>52</y></position>
+      <size><width>850</width><height>634</height></size>
+    </application>
+    <application title="System Monitor">
+      <desktop>3</desktop>
+      <position force="yes"><x>850</x><y>52</y></position>
+      <size><width>430</width><height>634</height></size>
     </application>
   </applications>
   <keyboard>
-    <keybind key="C-A-t">
-      <action name="Execute">
-        <command>/opt/cdmx-local-ai/device/desktop/open-terminal.sh</command>
+    <keybind key="A-Tab">
+      <action name="NextWindow">
+        <finalactions><action name="Focus"/><action name="Raise"/><action name="Unshade"/></finalactions>
       </action>
+    </keybind>
+    <keybind key="A-S-Tab">
+      <action name="PreviousWindow">
+        <finalactions><action name="Focus"/><action name="Raise"/><action name="Unshade"/></finalactions>
+      </action>
+    </keybind>
+    <keybind key="C-A-Left"><action name="GoToDesktop"><to>left</to><wrap>yes</wrap></action></keybind>
+    <keybind key="C-A-Right"><action name="GoToDesktop"><to>right</to><wrap>yes</wrap></action></keybind>
+    <keybind key="W-1"><action name="GoToDesktop"><to>1</to></action></keybind>
+    <keybind key="W-2"><action name="GoToDesktop"><to>2</to></action></keybind>
+    <keybind key="W-3"><action name="GoToDesktop"><to>3</to></action></keybind>
+    <keybind key="W-S-1"><action name="SendToDesktop"><to>1</to><follow>yes</follow></action></keybind>
+    <keybind key="W-S-2"><action name="SendToDesktop"><to>2</to><follow>yes</follow></action></keybind>
+    <keybind key="W-S-3"><action name="SendToDesktop"><to>3</to><follow>yes</follow></action></keybind>
+    <keybind key="C-A-t">
+      <action name="Execute"><command>/opt/cdmx-local-ai/device/desktop/open-terminal.sh</command></action>
     </keybind>
     <keybind key="C-A-e">
-      <action name="Execute">
-        <command>/opt/cdmx-local-ai/device/desktop/open-editor.sh</command>
-      </action>
+      <action name="Execute"><command>/opt/cdmx-local-ai/device/desktop/open-editor.sh</command></action>
     </keybind>
     <keybind key="C-A-p">
-      <action name="Execute">
-        <command>xterm -title 'Pi Agent' -geometry 100x30 -fa Monospace -fs 10 -bg '#0b1020' -fg '#e5e7eb' -e /opt/cdmx-local-ai/device/desktop/pi-terminal.sh</command>
-      </action>
+      <action name="Execute"><command>xterm -title 'Pi Agent' -geometry 100x30 -fa Monospace -fs 10 -bg '#0b1020' -fg '#e5e7eb' -e /opt/cdmx-local-ai/device/desktop/pi-terminal.sh</command></action>
     </keybind>
-    <keybind key="W-space">
-      <action name="ShowMenu"><menu>root-menu</menu></action>
-    </keybind>
+    <keybind key="W-space"><action name="ShowMenu"><menu>root-menu</menu></action></keybind>
+    <keybind key="W-d"><action name="ToggleShowDesktop"/></keybind>
     <keybind key="A-F4"><action name="Close"/></keybind>
+    <keybind key="A-F10"><action name="ToggleMaximize"/></keybind>
   </keyboard>
   <mouse>
+    <context name="Frame">
+      <mousebind button="A-Left" action="Press"><action name="Focus"/><action name="Raise"/></mousebind>
+      <mousebind button="A-Left" action="Drag"><action name="Move"/></mousebind>
+      <mousebind button="A-Right" action="Press"><action name="Focus"/><action name="Raise"/></mousebind>
+      <mousebind button="A-Right" action="Drag"><action name="Resize"/></mousebind>
+    </context>
+    <context name="Titlebar">
+      <mousebind button="Left" action="Press"><action name="Focus"/><action name="Raise"/></mousebind>
+      <mousebind button="Left" action="Drag"><action name="Move"/></mousebind>
+      <mousebind button="Left" action="DoubleClick"><action name="ToggleMaximize"/></mousebind>
+      <mousebind button="Right" action="Press"><action name="ShowMenu"><menu>client-menu</menu></action></mousebind>
+    </context>
+    <context name="Top Left Right Bottom TLCorner TRCorner BLCorner BRCorner">
+      <mousebind button="Left" action="Press"><action name="Focus"/><action name="Raise"/></mousebind>
+      <mousebind button="Right" action="Press"><action name="ShowMenu"><menu>client-menu</menu></action></mousebind>
+    </context>
+    <context name="Top"><mousebind button="Left" action="Drag"><action name="Resize"><edge>top</edge></action></mousebind></context>
+    <context name="Left"><mousebind button="Left" action="Drag"><action name="Resize"><edge>left</edge></action></mousebind></context>
+    <context name="Right"><mousebind button="Left" action="Drag"><action name="Resize"><edge>right</edge></action></mousebind></context>
+    <context name="Bottom"><mousebind button="Left" action="Drag"><action name="Resize"><edge>bottom</edge></action></mousebind></context>
+    <context name="TLCorner"><mousebind button="Left" action="Drag"><action name="Resize"><edge>topleft</edge></action></mousebind></context>
+    <context name="TRCorner"><mousebind button="Left" action="Drag"><action name="Resize"><edge>topright</edge></action></mousebind></context>
+    <context name="BLCorner"><mousebind button="Left" action="Drag"><action name="Resize"><edge>bottomleft</edge></action></mousebind></context>
+    <context name="BRCorner"><mousebind button="Left" action="Drag"><action name="Resize"><edge>bottomright</edge></action></mousebind></context>
+    <context name="Client">
+      <mousebind button="Left" action="Press"><action name="Focus"/><action name="Raise"/></mousebind>
+      <mousebind button="Middle" action="Press"><action name="Focus"/><action name="Raise"/></mousebind>
+      <mousebind button="Right" action="Press"><action name="Focus"/><action name="Raise"/></mousebind>
+    </context>
+    <context name="Iconify"><mousebind button="Left" action="Click"><action name="Iconify"/></mousebind></context>
+    <context name="Maximize">
+      <mousebind button="Left" action="Click"><action name="ToggleMaximize"/></mousebind>
+      <mousebind button="Middle" action="Click"><action name="ToggleMaximize"><direction>vertical</direction></action></mousebind>
+      <mousebind button="Right" action="Click"><action name="ToggleMaximize"><direction>horizontal</direction></action></mousebind>
+    </context>
+    <context name="Close"><mousebind button="Left" action="Click"><action name="Close"/></mousebind></context>
+    <context name="Desktop">
+      <mousebind button="Up" action="Click"><action name="GoToDesktop"><to>previous</to></action></mousebind>
+      <mousebind button="Down" action="Click"><action name="GoToDesktop"><to>next</to></action></mousebind>
+    </context>
     <context name="Root">
-      <mousebind button="Right" action="Press">
-        <action name="ShowMenu"><menu>root-menu</menu></action>
-      </mousebind>
+      <mousebind button="Middle" action="Press"><action name="ShowMenu"><menu>client-list-combined-menu</menu></action></mousebind>
+      <mousebind button="Right" action="Press"><action name="ShowMenu"><menu>root-menu</menu></action></mousebind>
     </context>
   </mouse>
-  <menu>
-    <file>/opt/cdmx-local-ai/device/desktop/menu.xml</file>
-  </menu>
+  <menu><file>/opt/cdmx-local-ai/device/desktop/menu.xml</file></menu>
 </openbox_config>
