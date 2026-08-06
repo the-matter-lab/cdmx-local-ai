@@ -67,7 +67,7 @@ The container is not an application to run: it transports
 `cdmx-workshop-golden.img.xz` in parts plus its SHA-512 checksum. The script
 reassembles the image and verifies the checksum before enabling SD-card
 flashing. To pin an exact version, use, for example,
-`CDMX_IMAGE_REF=bestquark/cdmx-radxa-zero3w:2026-08-05 ./host/pull-workshop-image.sh`.
+`CDMX_IMAGE_REF=bestquark/cdmx-radxa-zero3w:2026-08-06 ./host/pull-workshop-image.sh`.
 
 No physical master board or master SD card is used. The build runs in an
 isolated ARM64 Linux environment on the Mac and includes the Mac user's SSH
