@@ -9,6 +9,13 @@
     <menu id="desktop-menu"/>
     <item label="Show all open windows"><action name="ShowMenu"><menu>client-list-combined-menu</menu></action></item>
     <separator/>
+    <item label="Workshop instructions">
+      <action name="Execute"><command>/opt/cdmx-local-ai/device/desktop/open-workshop-readme.sh</command></action>
+    </item>
+    <item label="Download/update workshop code">
+      <action name="Execute"><command>/opt/cdmx-local-ai/device/desktop/open-workshop-repos.sh</command></action>
+    </item>
+    <separator/>
     <item label="New Terminal  (Ctrl+Alt+T)">
       <action name="Execute"><command>/opt/cdmx-local-ai/device/desktop/open-terminal.sh</command></action>
     </item>

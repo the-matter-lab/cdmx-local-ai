@@ -30,6 +30,8 @@ generan y guardan localmente.
   maximizar y seleccionar con `Alt+Tab`. Haga clic derecho en el fondo para
   abrir terminales, los editores Geany o Nano, Pi Agent y el monitor del
   sistema. `Ctrl+Alt+T` abre una terminal nueva.
+- Un fondo de la conferencia de Matter Lab y un lanzador en el menú que descarga
+  o actualiza con un clic ambos repositorios del taller en el espacio compartido.
 - PicoClaw como agente principal del canal de Telegram; Discord es opcional.
 - Pi como agente de programación interactivo local opcional.
 - Dependencias de `cdmx-bayesopt` y las interfaces I2C4-M0/SPI3-M1 de la ZERO

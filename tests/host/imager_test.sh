@@ -95,7 +95,15 @@ assert_eq 1 "$(grep -c '<keybind key="C-A-t">' "$ROOT/device/desktop/openbox.xml
   'desktop has a new-terminal shortcut'
 assert_eq 1 "$(grep -c 'Code Editor — Geany' "$ROOT/device/desktop/menu.xml")" \
   'desktop menu includes a graphical code editor'
-if ! grep -Eq 'curl geany git' "$ROOT/device/install.sh" || ! grep -Eq '^[[:space:]]*tint2 tmux ' "$ROOT/device/install.sh"; then
+assert_eq 1 "$(grep -c 'Download/update workshop code' "$ROOT/device/desktop/menu.xml")" \
+  'desktop menu includes the one-click repository downloader'
+assert_eq 2 "$(grep -c '^ *update_repo cdmx-' "$ROOT/device/desktop/fetch-workshop-repos.sh")" \
+  'repository downloader includes both workshop repositories'
+assert_eq '1280 x 720' "$(file "$ROOT/device/desktop/matter-lab-workshop-wallpaper.png" | sed -n 's/.*PNG image data, \([0-9][0-9]* x [0-9][0-9]*\),.*/\1/p')" \
+  'Matter Lab wallpaper has the noVNC desktop dimensions'
+assert_eq 1 "$(grep -c 'Matter Lab International Conference 2026 ∙ Satellite School' "$ROOT/device/desktop/matter-lab-workshop-wallpaper.svg")" \
+  'wallpaper carries the conference title'
+if ! grep -Eq 'curl feh geany git' "$ROOT/device/install.sh" || ! grep -Eq '^[[:space:]]*tint2 tmux ' "$ROOT/device/install.sh"; then
   printf 'not ok - graphical editor or desktop task bar is missing from the workshop image\n'
   failures=$((failures + 1))
 else

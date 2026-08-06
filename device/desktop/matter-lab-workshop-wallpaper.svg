@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1280" height="720" viewBox="0 0 1280 720">
+  <title>Matter Lab International Conference 2026 Satellite School</title>
+  <rect width="1280" height="720" fill="#000000"/>
+  <image x="32" y="24" width="301" height="79"
+         href="matter-lab-logo.svg" xlink:href="matter-lab-logo.svg"/>
+  <text x="32" y="662"
+        fill="#ffffff"
+        font-family="DejaVu Sans, Arial, sans-serif"
+        font-size="21"
+        font-weight="500"
+        letter-spacing="0.15">Matter Lab International Conference 2026 ∙ Satellite School</text>
+</svg>

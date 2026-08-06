@@ -32,7 +32,7 @@ if [ -z "$XVNC" ]; then
     echo "TigerVNC server not found (expected Xtigervnc or Xvnc)." >&2
     exit 69
 fi
-for command_name in mcookie xauth openbox tint2 xterm xsetroot; do
+for command_name in feh mcookie xauth openbox tint2 xterm xsetroot; do
     if ! command -v "$command_name" >/dev/null 2>&1; then
         echo "Required desktop command not found: $command_name" >&2
         exit 69
@@ -81,9 +81,10 @@ CHILDREN="$CHILDREN $!"
 tint2 -c "$ROOT/device/desktop/tint2rc" &
 CHILDREN="$CHILDREN $!"
 
-xsetroot -solid '#111827'
-xterm -title 'System Status' -geometry 160x3+0+0 \
-    -fa Monospace -fs 9 -bg '#111827' -fg '#86efac' \
+xsetroot -solid '#000000'
+feh --no-fehbg --bg-fill "$ROOT/device/desktop/matter-lab-workshop-wallpaper.png"
+xterm -title 'System Status' -geometry 75x3+650+24 \
+    -fa Monospace -fs 9 -bg '#000000' -fg '#86efac' \
     -e "$ROOT/device/desktop/system-status.sh" &
 CHILDREN="$CHILDREN $!"
 

@@ -25,6 +25,12 @@ espacio de trabajo, los editores Geany o Nano, Pi Agent o el monitor del sistema
 `Ctrl+Alt+T` abre una terminal nueva, `Ctrl+Alt+E` abre Geany y `Super+Espacio`
 muestra el menú.
 
+Elija `Download/update workshop code` en ese mismo menú para descargar o
+actualizar automáticamente `cdmx-bayesopt` y `cdmx-local-ai`. No necesita
+escribir las direcciones. También puede ejecutar `cdmx-get-workshop-repos` en
+una terminal. El lanzador nunca sobrescribe una carpeta que no sea un
+repositorio Git.
+
 Otros medios de acceso:
 
 ```text

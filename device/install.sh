@@ -76,7 +76,7 @@ if ! $skip_upgrade; then
     apt-get -y full-upgrade
 fi
 apt-get install -y --no-install-recommends \
-    avahi-daemon bash ca-certificates curl geany git i2c-tools jq locales nano \
+    avahi-daemon bash ca-certificates curl feh geany git i2c-tools jq locales nano \
     network-manager novnc openbox openssh-server python3 python3-matplotlib \
     python3-numpy python3-pil python3-pip python3-smbus python3-spidev \
     python3-venv rfkill sudo tigervnc-standalone-server \
@@ -169,6 +169,12 @@ chown -R root:root /opt/cdmx-local-ai
 find /opt/cdmx-local-ai/device /opt/cdmx-local-ai/host -type f -name '*.sh' -exec chmod 0755 {} +
 chmod 0755 /opt/cdmx-local-ai/device/network/cdmx-network \
     /opt/cdmx-local-ai/device/network/network_portal.py
+
+install -m 0755 /opt/cdmx-local-ai/device/desktop/fetch-workshop-repos.sh \
+    /usr/local/bin/cdmx-get-workshop-repos
+install -m 0644 -o "$workshop_user" -g "$workshop_user" \
+    /opt/cdmx-local-ai/device/desktop/WORKSHOP-README.txt \
+    "/home/$workshop_user/WORKSHOP-README.txt"
 
 install -m 0755 /opt/cdmx-local-ai/device/network/cdmx-network /usr/local/sbin/cdmx-network
 install -m 0755 /opt/cdmx-local-ai/device/network/network_portal.py /usr/local/lib/cdmx/network_portal.py

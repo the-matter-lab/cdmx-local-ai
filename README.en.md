@@ -27,6 +27,8 @@ always generated and stored locally.
   title bars and can be moved, resized, minimized, maximized, and selected with
   `Alt+Tab`. Right-click the background to open terminals, the Geany or Nano
   editor, Pi Agent, or the system monitor. `Ctrl+Alt+T` opens a new terminal.
+- A Matter Lab conference wallpaper and a one-click menu launcher that clones
+  or safely updates both workshop repositories in the shared workspace.
 - PicoClaw as the primary Telegram channel agent; Discord is optional.
 - Pi as an optional local interactive coding agent.
 - `cdmx-bayesopt` dependencies and the ZERO 3W I2C4-M0/SPI3-M1 interfaces
