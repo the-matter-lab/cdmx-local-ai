@@ -9,8 +9,9 @@ shared noVNC desktop, and can run a coding
 agent from Telegram or Discord inside a restricted workspace.
 
 This repository contains all source code, configuration, checks, and operating
-instructions. Multi-gigabyte SD-card images and credentials are generated
-locally and intentionally excluded from the repository.
+instructions. Multi-gigabyte SD-card images are not stored in Git; the
+ready-to-flash image is also published as a Docker artifact. Credentials are
+always generated and stored locally.
 
 ## What participants get
 
@@ -53,6 +54,20 @@ through `equipo9` (or `admin` for the instructor's faster spare card), and
 watch live write and verification progress. The server
 listens only on loopback, revalidates that the target is a removable whole
 disk, and ejects the card when it is safe to remove.
+
+To avoid rebuilding the image, download the verified artifact from
+[Docker Hub](https://hub.docker.com/r/bestquark/cdmx-radxa-zero3w):
+
+```bash
+./host/pull-workshop-image.sh
+./host/start-imager.command
+```
+
+The container is not an application to run: it transports
+`cdmx-workshop-golden.img.xz` in parts plus its SHA-512 checksum. The script
+reassembles the image and verifies the checksum before enabling SD-card
+flashing. To pin an exact version, use, for example,
+`CDMX_IMAGE_REF=bestquark/cdmx-radxa-zero3w:2026-08-05 ./host/pull-workshop-image.sh`.
 
 No physical master board or master SD card is used. The build runs in an
 isolated ARM64 Linux environment on the Mac and includes the Mac user's SSH

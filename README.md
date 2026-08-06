@@ -11,8 +11,9 @@ espacio de trabajo.
 
 Este repositorio contiene todo el código fuente, la configuración, las
 verificaciones y las instrucciones de operación. Las imágenes de tarjetas SD,
-que ocupan varios gigabytes, y las credenciales se generan localmente y no se
-incluyen intencionalmente en el repositorio.
+que ocupan varios gigabytes, no se guardan en Git; la imagen lista para grabar
+también se publica como un artefacto de Docker. Las credenciales siempre se
+generan y guardan localmente.
 
 ## Lo que tendrán los participantes
 
@@ -56,6 +57,20 @@ elegir `equipo0` a `equipo9` (o `admin` para la tarjeta rápida del instructor)
 y observar el progreso de escritura y verificación.
 La interfaz solo escucha en loopback, vuelve a validar que el destino sea una
 unidad completa y extraíble, y expulsa la tarjeta cuando es seguro retirarla.
+
+Para evitar reconstruir la imagen, puede descargar el artefacto verificado de
+[Docker Hub](https://hub.docker.com/r/bestquark/cdmx-radxa-zero3w):
+
+```bash
+./host/pull-workshop-image.sh
+./host/start-imager.command
+```
+
+El contenedor no es una aplicación para ejecutar: transporta la imagen
+`cdmx-workshop-golden.img.xz` en partes y su suma SHA-512. El script reconstruye
+la imagen y comprueba la suma antes de habilitar la grabación de tarjetas. Para
+fijar una versión exacta, use por ejemplo
+`CDMX_IMAGE_REF=bestquark/cdmx-radxa-zero3w:2026-08-05 ./host/pull-workshop-image.sh`.
 
 No se usa una placa maestra ni una tarjeta SD maestra física. La construcción
 se ejecuta en un entorno Linux ARM64 aislado en la Mac e incluye la clave SSH

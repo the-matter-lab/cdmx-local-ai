@@ -1,5 +1,6 @@
 # Reproducible but very large generated image artifacts
 /image/cache/
+/image/docker-parts/
 /image/*.img
 /image/*.img.xz
 /image/*.img.gz
