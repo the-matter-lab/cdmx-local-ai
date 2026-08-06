@@ -77,6 +77,9 @@ assert_eq '    os.chmod(args.state_dir, 0o710)' \
 assert_eq 'git -C "$ROOT" archive --format=tar HEAD > "$source_archive_partial"' \
   "$(grep '^git -C \"\$ROOT\" archive --format=tar HEAD > \"\$source_archive_partial\"$' "$ROOT/host/build-workshop-image.sh")" \
   'image builds use an immutable tracked-source snapshot'
+assert_eq 'output_raw=$(mktemp "$ROOT/image/cache/cdmx-workshop-golden.XXXXXX.img")' \
+  "$(grep '^output_raw=$(mktemp ' "$ROOT/host/build-workshop-image.sh")" \
+  'each image build uses an isolated raw working file'
 assert_eq 2 "$(grep -c '<menu>root-menu</menu>' "$ROOT/device/desktop/openbox.xml")" \
   'desktop launcher is available from the keyboard and right-click'
 assert_eq 1 "$(grep -c '<keybind key="C-A-t">' "$ROOT/device/desktop/openbox.xml")" \

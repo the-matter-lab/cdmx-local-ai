@@ -34,14 +34,14 @@ docker info >/dev/null 2>&1 || die 'Docker Desktop is not running'
 source "$ROOT/image/radxa-zero3-bookworm-kde-rsdk-b1.env"
 stock_xz="$ROOT/image/cache/$IMAGE_FILENAME"
 stock_raw="${stock_xz%.xz}"
-output_raw="$ROOT/image/cache/cdmx-workshop-golden.img"
+output_raw=$(mktemp "$ROOT/image/cache/cdmx-workshop-golden.XXXXXX.img")
 output_xz="$ROOT/image/cdmx-workshop-golden.img.xz"
 output_partial="$output_xz.partial"
 checksum_partial="$output_xz.sha512.partial"
 source_archive="$ROOT/image/cache/cdmx-source.tar"
 source_archive_partial="$source_archive.partial"
 cleanup() {
-    rm -f -- "$output_partial" "$checksum_partial" "$source_archive" "$source_archive_partial"
+    rm -f -- "$output_raw" "$output_partial" "$checksum_partial" "$source_archive" "$source_archive_partial"
 }
 trap cleanup EXIT
 
