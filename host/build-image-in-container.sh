@@ -2,10 +2,17 @@
 set -Eeuo pipefail
 
 image=${1:?image path required}
-source_root=${2:-/source}
+source_input=${2:-/source}
 authorized_key=${3:-/instructor.pub}
 mount_root=/mnt/cdmx-image
 rootfs=$mount_root/rootfs
+source_root=$source_input
+
+if [[ -f $source_input ]]; then
+    source_root=/mnt/cdmx-source
+    mkdir -p "$source_root"
+    tar -xf "$source_input" -C "$source_root"
+fi
 
 cleanup() {
     set +e

@@ -26,6 +26,7 @@ grep -Eq '^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp(256|384|521))[[:space:]]+' "$ke
     die 'Instructor key is not a supported SSH public key'
 
 need_command docker
+need_command git
 need_command xz
 docker info >/dev/null 2>&1 || die 'Docker Desktop is not running'
 
@@ -37,10 +38,16 @@ output_raw="$ROOT/image/cache/cdmx-workshop-golden.img"
 output_xz="$ROOT/image/cdmx-workshop-golden.img.xz"
 output_partial="$output_xz.partial"
 checksum_partial="$output_xz.sha512.partial"
+source_archive="$ROOT/image/cache/cdmx-source.tar"
+source_archive_partial="$source_archive.partial"
 cleanup() {
-    rm -f -- "$output_partial" "$checksum_partial"
+    rm -f -- "$output_partial" "$checksum_partial" "$source_archive" "$source_archive_partial"
 }
 trap cleanup EXIT
+
+note 'Snapshotting the tracked source at the current commit'
+git -C "$ROOT" archive --format=tar HEAD > "$source_archive_partial"
+mv -f -- "$source_archive_partial" "$source_archive"
 verify_compressed_image "$stock_xz" "$IMAGE_SHA512"
 
 if [[ ! -f $stock_raw ]]; then
@@ -58,10 +65,11 @@ note 'Installing the workshop stack into the ARM64 image'
 docker run --rm --privileged \
     -v "$ROOT:/source:ro" \
     -v "$ROOT/image/cache:/images" \
+    -v "$source_archive:/source.tar:ro" \
     -v "$key_file:/instructor.pub:ro" \
     ubuntu:24.04 \
     /bin/bash /source/host/build-image-in-container.sh \
-    /images/cdmx-workshop-golden.img /source /instructor.pub
+    /images/cdmx-workshop-golden.img /source.tar /instructor.pub
 
 note 'Compressing and checking the workshop image'
 xz -T0 -1 -c -- "$output_raw" > "$output_partial"

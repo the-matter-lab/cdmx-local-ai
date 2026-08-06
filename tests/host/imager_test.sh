@@ -74,6 +74,9 @@ assert_eq 'install -d -o cdmx-agent -g cdmx-workspace -m 0710 /var/lib/cdmx-pico
 assert_eq '    os.chmod(args.state_dir, 0o710)' \
   "$(grep '^    os.chmod(args.state_dir, 0o710)$' "$ROOT/device/agent/setup.py")" \
   'agent reconfiguration preserves desktop traversal access'
+assert_eq 'git -C "$ROOT" archive --format=tar HEAD > "$source_archive_partial"' \
+  "$(grep '^git -C \"\$ROOT\" archive --format=tar HEAD > \"\$source_archive_partial\"$' "$ROOT/host/build-workshop-image.sh")" \
+  'image builds use an immutable tracked-source snapshot'
 
 if (( failures > 0 )); then
   printf '%s test(s) failed\n' "$failures" >&2
