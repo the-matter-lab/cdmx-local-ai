@@ -19,12 +19,16 @@ always generated and stored locally.
 - `http://equipoN.local:6080/view.html` — shared read-only link for the rest of
   the team.
 - `ssh cdmx@equipoN.local` — terminal access from the same LAN.
+- Passwordless `sudo` for installing exercise tools and configuring local
+  hardware.
 - A 1280×720 Openbox desktop with a Pi terminal, channel and workspace
   activity, and CPU/RAM/temperature status. Right-click the background to open
   terminals, the Nano editor, Pi Agent, or the system monitor. `Ctrl+Alt+T`
   opens a new terminal.
 - PicoClaw as the primary Telegram channel agent; Discord is optional.
 - Pi as an optional local interactive coding agent.
+- `cdmx-bayesopt` dependencies and the ZERO 3W I2C4-M0/SPI3-M1 interfaces
+  prepared for the color lab.
 
 The single shared desktop is intentional. Five graphical sessions plus the
 agents do not fit comfortably in 1 GB; one person controls the desktop while
@@ -177,8 +181,9 @@ function or a physical experiment through a Python function.
   cards and use `sudo poweroff` whenever possible.
 - Direct VNC listens only on loopback. The setup Wi-Fi and noVNC are
   deliberately passwordless for the workshop, so anyone on those local
-  networks can view/control the desktop. Do not expose
-  them to the public Internet. SSH is public-key only.
+  networks can view/control the desktop. The `cdmx` account also has
+  passwordless `sudo` for hardware exercises. Do not expose these interfaces to
+  the public Internet. SSH is public-key only.
 - PicoClaw is pinned to a specific version because it has not reached v1. It
   runs without sudo as a dedicated user, with systemd isolation and one
   writable workspace, but remote code execution is intentionally enabled for

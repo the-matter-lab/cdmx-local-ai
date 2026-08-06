@@ -76,17 +76,24 @@ if ! $skip_upgrade; then
     apt-get -y full-upgrade
 fi
 apt-get install -y --no-install-recommends \
-    avahi-daemon bash ca-certificates curl git jq locales nano \
-    network-manager novnc openbox openssh-server python3 \
-    rfkill sudo tigervnc-standalone-server \
+    avahi-daemon bash ca-certificates curl git i2c-tools jq locales nano \
+    network-manager novnc openbox openssh-server python3 python3-matplotlib \
+    python3-numpy python3-pil python3-pip python3-smbus python3-spidev \
+    python3-venv rfkill sudo tigervnc-standalone-server \
     tmux ufw unattended-upgrades websockify x11-xserver-utils xauth xterm \
     zram-tools
 
 if ! id "$workshop_user" >/dev/null 2>&1; then
     adduser --disabled-password --gecos 'CDMX workshop team' "$workshop_user"
 fi
-usermod -aG audio,video,render,plugdev,systemd-journal "$workshop_user"
+usermod -aG audio,video,render,plugdev,sudo,systemd-journal "$workshop_user"
 passwd --lock "$workshop_user" >/dev/null
+install -d -m 0755 /etc/sudoers.d
+cat > /etc/sudoers.d/90-cdmx-workshop <<EOF
+$workshop_user ALL=(ALL:ALL) NOPASSWD: ALL
+EOF
+chmod 0440 /etc/sudoers.d/90-cdmx-workshop
+visudo -cf /etc/sudoers.d/90-cdmx-workshop >/dev/null
 install -d -m 0700 -o "$workshop_user" -g "$workshop_user" "/home/$workshop_user/.ssh"
 if [[ -n $authorized_key_file ]]; then
     install -m 0600 -o "$workshop_user" -g "$workshop_user" \
@@ -94,6 +101,18 @@ if [[ -n $authorized_key_file ]]; then
 else
     rm -f "/home/$workshop_user/.ssh/authorized_keys"
     printf 'WARNING: no instructor SSH public key was installed; SSH login will remain unavailable.\n' >&2
+fi
+
+# The cdmx-bayesopt color lab uses the ZERO 3W header's I2C4-M0 bus and
+# SPI3-M1 CS0 device. RadxaOS ships these overlays disabled by filename;
+# enabling them here avoids an interactive rsetup/reboot step at the workshop.
+for overlay in rk3568-i2c4-m0.dtbo rk3568-spi3-m1-cs0-spidev.dtbo; do
+    if [[ -e /boot/dtbo/$overlay.disabled && ! -e /boot/dtbo/$overlay ]]; then
+        mv -- "/boot/dtbo/$overlay.disabled" "/boot/dtbo/$overlay"
+    fi
+done
+if command -v u-boot-update >/dev/null 2>&1; then
+    u-boot-update
 fi
 
 # Disable vendor defaults after the dedicated account is known to work.

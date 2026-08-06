@@ -28,6 +28,10 @@ El directorio de código compartido es `/var/lib/cdmx-picoclaw/workspace`.
 Guarde ahí todo el trabajo del agente. No pegue claves de API ni tokens de bots
 en el chat, en archivos de código fuente ni en la terminal.
 
+La cuenta `cdmx` puede ejecutar `sudo` sin contraseña para instalar dependencias
+y configurar GPIO/I²C/SPI durante el ejercicio. Utilícelo únicamente para el
+trabajo del taller.
+
 Antes de desconectar la placa, use `sudo poweroff` y espere a que termine la
 actividad. Si se corta la energía inesperadamente, la placa debería
 recuperarse en el siguiente arranque, pero una interrupción durante una

@@ -21,12 +21,16 @@ generan y guardan localmente.
 - `http://equipoN.local:6080/view.html` — enlace compartido de solo lectura para
   el resto del equipo.
 - `ssh cdmx@equipoN.local` — acceso por terminal desde la misma red LAN.
+- `sudo` sin contraseña para instalar las herramientas del ejercicio y
+  configurar el hardware local.
 - Un escritorio Openbox de 1280×720 con una terminal Pi, actividad del canal y
   del espacio de trabajo y estado de CPU/RAM/temperatura. Haga clic derecho en
   el fondo para abrir terminales, el editor Nano, Pi Agent y el monitor del
   sistema. `Ctrl+Alt+T` abre una terminal nueva.
 - PicoClaw como agente principal del canal de Telegram; Discord es opcional.
 - Pi como agente de programación interactivo local opcional.
+- Dependencias de `cdmx-bayesopt` y las interfaces I2C4-M0/SPI3-M1 de la ZERO
+  3W preparadas para el laboratorio de color.
 
 El uso de un solo escritorio compartido es intencional. Cinco sesiones gráficas
 más los agentes no caben cómodamente en 1 GB; una persona controla el escritorio
@@ -187,8 +191,9 @@ función de prueba o un experimento físico mediante una función de Python.
 - VNC directo escucha únicamente en loopback. El Wi-Fi de configuración y
   noVNC no tienen contraseña deliberadamente para el taller, por lo que
   cualquier persona en esas redes locales puede ver/controlar el escritorio.
-  No los exponga a Internet pública. SSH
-  acepta únicamente claves públicas.
+  La cuenta `cdmx` también tiene `sudo` sin contraseña para los ejercicios de
+  hardware. No exponga estas interfaces a Internet pública. SSH acepta
+  únicamente claves públicas.
 - PicoClaw está fijado a una versión concreta porque aún no llega a v1. Se
   ejecuta sin sudo como usuario independiente, con aislamiento de systemd y un
   único espacio de trabajo con permisos de escritura, pero la ejecución remota

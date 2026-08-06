@@ -96,6 +96,18 @@ if grep -Rq 'cdmx-demo\|show-demo.sh\|Bayesian Optimization' \
 else
   printf 'ok - the default desktop does not start the BayesOpt animation\n'
 fi
+assert_eq '$workshop_user ALL=(ALL:ALL) NOPASSWD: ALL' \
+  "$(grep '^\$workshop_user ALL=(ALL:ALL) NOPASSWD: ALL$' "$ROOT/device/install.sh")" \
+  'workshop user can install tools without a nonexistent password'
+assert_eq 1 "$(grep -c 'rk3568-i2c4-m0.dtbo rk3568-spi3-m1-cs0-spidev.dtbo' "$ROOT/device/install.sh")" \
+  'color-lab hardware overlays are enabled in the image'
+if ! grep -Eq 'python3-numpy python3-pil python3-pip python3-smbus python3-spidev' \
+    "$ROOT/device/install.sh"; then
+  printf 'not ok - color-lab Python dependencies are not preinstalled\n'
+  failures=$((failures + 1))
+else
+  printf 'ok - color-lab Python dependencies are preinstalled\n'
+fi
 
 if (( failures > 0 )); then
   printf '%s test(s) failed\n' "$failures" >&2
