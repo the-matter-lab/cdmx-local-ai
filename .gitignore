@@ -1,14 +1,4 @@
-# Reproducible but very large generated image artifacts
-/image/cache/
-/image/docker-parts/
-/image/*.img
-/image/*.img.xz
-/image/*.img.gz
-/image/*.bytes
-/image/*.sha512
-/artifacts/
-
-# Credentials and runtime state must never enter Git
+# Credentials and runtime state must never enter Git.
 .env
 .env.*
 !.env.example
@@ -18,7 +8,7 @@
 *.secrets.yml
 .security.yml
 
-# Local test/runtime debris
+# Local test/runtime debris.
 __pycache__/
 *.py[cod]
 .DS_Store
