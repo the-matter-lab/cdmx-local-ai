@@ -34,7 +34,8 @@ esac
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y --no-install-recommends ca-certificates curl tar xz-utils
+apt-get install -y --no-install-recommends \
+  ca-certificates curl git python3 python3-smbus python3-spidev tar xz-utils
 
 work_dir="$(mktemp -d -t cdmx-agent-install.XXXXXXXX)"
 cleanup() {
@@ -83,11 +84,16 @@ fi
 if ! getent group cdmx-workspace >/dev/null; then
   groupadd --system cdmx-workspace
 fi
+for hardware_group in i2c spi spidev; do
+  if ! getent group "$hardware_group" >/dev/null; then
+    groupadd --system "$hardware_group"
+  fi
+done
 if ! id cdmx-agent >/dev/null 2>&1; then
   useradd --system --gid cdmx-agent --home-dir /var/lib/cdmx-picoclaw \
     --create-home --shell /usr/sbin/nologin cdmx-agent
 fi
-usermod --append --groups cdmx-workspace cdmx-agent
+usermod --append --groups cdmx-workspace,i2c,spi,spidev cdmx-agent
 # The shared noVNC desktop normally runs as cdmx. Give it workspace access if
 # that account has already been created, without granting access to secrets.
 if id cdmx >/dev/null 2>&1; then
@@ -107,6 +113,18 @@ install -o cdmx-agent -g cdmx-workspace -m 0660 \
   "${script_dir}/workspace/AGENT.md" /var/lib/cdmx-picoclaw/workspace/AGENT.md
 install -o cdmx-agent -g cdmx-workspace -m 0660 \
   "${script_dir}/workspace/README.md" /var/lib/cdmx-picoclaw/workspace/README.md
+for skill in coding color-sensor led; do
+  install -d -o cdmx-agent -g cdmx-workspace -m 2770 \
+    "/var/lib/cdmx-picoclaw/workspace/skills/${skill}"
+  install -o cdmx-agent -g cdmx-workspace -m 0660 \
+    "${script_dir}/workspace/skills/${skill}/SKILL.md" \
+    "/var/lib/cdmx-picoclaw/workspace/skills/${skill}/SKILL.md"
+done
+install -d -o cdmx-agent -g cdmx-workspace -m 2770 \
+  /var/lib/cdmx-picoclaw/workspace/tools
+install -o cdmx-agent -g cdmx-workspace -m 0770 \
+  "${script_dir}/workspace/tools/cdmx_hardware.py" \
+  /var/lib/cdmx-picoclaw/workspace/tools/cdmx_hardware.py
 install -o root -g root -m 0644 \
   "${script_dir}/systemd/cdmx-picoclaw.service" /etc/systemd/system/cdmx-picoclaw.service
 if [[ ${CDMX_OFFLINE_IMAGE:-0} != 1 ]]; then

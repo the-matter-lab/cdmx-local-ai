@@ -4,6 +4,8 @@ import os
 import pathlib
 import tempfile
 import unittest
+from types import SimpleNamespace
+from unittest import mock
 
 
 MODULE_PATH = pathlib.Path(__file__).parents[1] / "setup.py"
@@ -16,7 +18,7 @@ SPEC.loader.exec_module(setup)
 def args(**overrides):
     values = {
         "provider": "openai",
-        "model": "gpt-5.4",
+        "model": None,
         "api_base": None,
         "disable_telegram": False,
         "telegram_user": ["123", "456"],
@@ -36,12 +38,36 @@ class SetupTests(unittest.TestCase):
         self.assertFalse(cfg["agents"]["defaults"]["allow_read_outside_workspace"])
         self.assertEqual(cfg["channel_list"]["telegram"]["allow_from"], ["123", "456"])
         self.assertTrue(cfg["tools"]["exec"]["allow_remote"])
+        self.assertEqual(cfg["model_list"][0]["model"], "gpt-5.4")
+
+    def test_openrouter_is_the_free_router_default(self):
+        cfg = setup.build_config(args(provider="openrouter"))
+        self.assertEqual(cfg["model_list"][0]["provider"], "openrouter")
+        self.assertEqual(cfg["model_list"][0]["model"], "openrouter/free")
+
+    def test_oauth_config_needs_no_api_key(self):
+        cfg = setup.build_config(args(provider="openai-oauth"))
+        self.assertEqual(cfg["model_list"][0]["provider"], "openai")
+        self.assertEqual(cfg["model_list"][0]["auth_method"], "oauth")
+        security = setup.build_security(None, "123:token", None)
+        self.assertNotIn("model_list:", security)
+        self.assertIn("channel_list:", security)
 
     def test_litellm_config(self):
         cfg = setup.build_config(
             args(provider="litellm", model="team-model", api_base="https://llm.example/v1")
         )
         self.assertEqual(cfg["model_list"][0]["api_base"], "https://llm.example/v1")
+
+    def test_provider_defaults_and_model_override(self):
+        self.assertEqual(
+            setup.build_config(args(provider="gemini"))["model_list"][0]["model"],
+            "gemini-2.5-flash",
+        )
+        self.assertEqual(
+            setup.build_config(args(provider="moonshot", model="kimi-custom"))["model_list"][0]["model"],
+            "kimi-custom",
+        )
 
     def test_empty_or_six_user_allowlist_is_rejected(self):
         with self.assertRaises(ValueError):
@@ -73,6 +99,24 @@ class SetupTests(unittest.TestCase):
                 setup.secret_from_file(path, "api_key")
             os.chmod(path, 0o600)
             self.assertEqual(setup.secret_from_file(path, "api_key"), "not-a-real-key")
+
+    def test_oauth_login_runs_as_service_user_with_headless_flow(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state_dir = pathlib.Path(directory)
+            with (
+                mock.patch.object(
+                    setup.pwd,
+                    "getpwnam",
+                    return_value=SimpleNamespace(pw_uid=123, pw_gid=456),
+                ),
+                mock.patch.object(setup, "atomic_write") as write,
+                mock.patch.object(setup.subprocess, "run") as run,
+            ):
+                setup.run_oauth_login("openai", {"version": 3}, state_dir)
+            write.assert_called_once()
+            command = run.call_args.args[0]
+            self.assertIn("PICOCLAW_HOME=" + str(state_dir), command)
+            self.assertEqual(command[-3:], ["--provider", "openai", "--device-code"])
 
 
 if __name__ == "__main__":

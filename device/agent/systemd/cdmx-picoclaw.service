@@ -10,7 +10,7 @@ ConditionPathExists=/etc/cdmx-picoclaw/.security.yml
 Type=simple
 User=cdmx-agent
 Group=cdmx-agent
-SupplementaryGroups=cdmx-workspace
+SupplementaryGroups=cdmx-workspace i2c spi spidev
 # Group-write inside the setgid shared workspace; other PicoClaw state keeps
 # its cdmx-agent primary group and is not readable by the desktop account.
 UMask=0007
@@ -28,8 +28,9 @@ StateDirectoryMode=0750
 ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
-PrivateDevices=true
-DevicePolicy=closed
+# Hardware access is still limited by the i2c/spi/spidev Unix groups. A private
+# /dev would hide the two workshop peripherals from the unprivileged agent.
+PrivateDevices=false
 NoNewPrivileges=true
 CapabilityBoundingSet=
 AmbientCapabilities=
