@@ -1,0 +1,8 @@
+model_list:
+  workshop:
+    api_keys:
+      - "PASTE_YOUR_OPENROUTER_KEY"
+
+channels:
+  telegram:
+    token: "PASTE_YOUR_TELEGRAM_BOT_TOKEN"

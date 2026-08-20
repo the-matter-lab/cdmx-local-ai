@@ -3,130 +3,153 @@
 🇲🇽 [![Español](https://img.shields.io/badge/lang-Español-yellow.svg)](README.md) ·
 🇬🇧 [![English](https://img.shields.io/badge/lang-English-blue.svg)](README.en.md)
 
-PicoClaw convierte Telegram o Discord en una puerta de entrada al agente de
-programación de cada Radxa ZERO 3W. Los participantes pueden pedir en lenguaje
-natural que cambie el NeoPixel, lea el TCS34725, explique el proyecto o cree,
-modifique y pruebe archivos. El escritorio noVNC y el agente comparten el mismo
-espacio de trabajo.
+PicoClaw conecta Telegram con el agente de programación de cada Radxa ZERO
+3W. El participante configura el modelo, el bot y el gateway usando la sintaxis
+nativa de PicoClaw. Las skills del taller permiten cambiar el NeoPixel, leer el
+TCS34725 y trabajar con código.
 
-La imagen, el Wi-Fi y noVNC viven en
-[`cdmx-radxa-flash`](https://github.com/the-matter-lab/cdmx-radxa-flash). El
-Color Lab y el ejercicio RGB de optimización bayesiana permanecen en
-[`cdmx-bayesopt`](https://github.com/the-matter-lab/cdmx-bayesopt).
+El material que usarán los equipos está visible en la raíz del repositorio:
+[`skills/`](skills) contiene las instrucciones del agente y
+[`tools/`](tools) contiene la interfaz de hardware. La imagen no los instala:
+cada equipo los descarga durante el taller.
 
-## 1. Instalar
+La imagen ya incluye PicoClaw `0.3.1` y `pi`, pero no este repositorio ni sus
+skills. No ejecutes el
+instalador desde el escritorio noVNC.
 
-En la imagen del taller ya está instalado. Para actualizarlo o instalarlo en
-otra tarjeta:
+## 1. Clonar el repositorio
+
+Desde `~/workspace`:
 
 ```bash
 git clone https://github.com/the-matter-lab/cdmx-local-ai.git
 cd cdmx-local-ai
-sudo ./device/agent/install-agent.sh
 ```
 
-El instalador fija PicoClaw `0.3.1`, crea el usuario sin privilegios
-`cdmx-agent` e instala tres skills: `led`, `color-sensor` y `coding`. También
-instala `pi` para usar un agente interactivo desde la terminal del escritorio.
+## 2. Inicializar PicoClaw
 
-## 2. Elegir el modelo
-
-Para una prueba corta recomendamos una clave de
-[OpenRouter](https://openrouter.ai/keys) con su router `openrouter/free`:
+PicoClaw `0.3.1` llama `onboard` a su inicialización:
 
 ```bash
-sudo cdmx-agent-setup \
-  --provider openrouter \
-  --telegram-user 111111111 \
-  --telegram-user 222222222
+picoclaw version
+picoclaw onboard
 ```
 
-El comando pide la clave y el token del bot sin mostrarlos. El nivel gratuito
-de OpenRouter tiene límites bajos y disponibilidad variable; sirve para
-experimentar, no para producción. También están disponibles:
+El mensaje **`picoclaw is ready!`** es normal: solo confirma que PicoClaw creó
+los archivos iniciales. Todavía no hay modelo, clave, bot ni gateway
+configurados; esos son los siguientes pasos del participante.
 
-| Opción | Argumento | Valor predeterminado |
-|---|---|---|
-| [Gemini API](https://aistudio.google.com/api-keys) | `--provider gemini` | `gemini-2.5-flash` |
-| [DeepSeek](https://platform.deepseek.com/api_keys) | `--provider deepseek` | `deepseek-chat` |
-| [Moonshot/Kimi](https://platform.moonshot.cn/console/api-keys) | `--provider moonshot` | `moonshot-v1-8k` |
-| [OpenAI API](https://platform.openai.com/api-keys) | `--provider openai` | `gpt-5.4` |
-| [Anthropic API](https://console.anthropic.com/settings/keys) | `--provider anthropic` | `claude-sonnet-4-6` |
-| LiteLLM del taller | `--provider litellm --api-base https://…/v1` | `cdmx-workshop` |
-
-Se puede cambiar el modelo con `--model`. Las cuentas y cuotas de cada
-proveedor son independientes.
-
-PicoClaw también ofrece sus propios flujos de inicio de sesión, sin pegar una
-clave API. El acceso efectivo depende del plan y los permisos de la cuenta:
+Esto crea `~/.picoclaw/config.json`, `~/.picoclaw/.security.yml` y el espacio
+de PicoClaw. Para el taller, usa los ejemplos como punto de partida:
 
 ```bash
-# Muestra un código y una URL para iniciar sesión con OpenAI/Codex.
-sudo cdmx-agent-setup --provider openai-oauth --telegram-user 111111111
-
-# Primero genera un token con `claude setup-token` en una máquina con Claude.
-sudo cdmx-agent-setup --provider anthropic-oauth --telegram-user 111111111
+cp device/agent/examples/config.telegram.json ~/.picoclaw/config.json
+cp device/agent/examples/security.telegram.example.yml ~/.picoclaw/.security.yml
+chmod 600 ~/.picoclaw/.security.yml
 ```
 
-## 3. Conectar el chat
-
-### Telegram
-
-1. Crea un bot con [`@BotFather`](https://t.me/BotFather) y envíale `/start`.
-2. Obtén el identificador numérico `from.id` de cada participante con el método
-   oficial [`getUpdates`](https://core.telegram.org/bots/api#getupdates).
-3. Repite `--telegram-user ID` para cada persona (máximo cinco).
-
-### Discord
-
-Activa **Message Content Intent** para el bot y copia los IDs numéricos de los
-participantes:
+Ahora edita ambos archivos tú mismo:
 
 ```bash
-sudo cdmx-agent-setup \
-  --provider openrouter \
-  --disable-telegram \
-  --enable-discord \
-  --discord-user 999999999999999999
+nano ~/.picoclaw/config.json
+nano ~/.picoclaw/.security.yml
 ```
 
-Para usar ambos canales, omite `--disable-telegram` y agrega las opciones de
-Discord. Usa `--force` para reemplazar una configuración anterior.
+En `config.json`:
 
-## 4. Probarlo
+- Cambia `YOUR_NUMERIC_TELEGRAM_USER_ID` por tu ID numérico.
+- `provider`, `model` y `model_name` definen el modelo.
+- `workspace` permanece en `/home/cdmx/workspace` para compartir el código con
+  noVNC y `pi`.
+- `allow_from` debe contener únicamente los participantes autorizados.
 
-Envía al bot, por ejemplo:
+En `.security.yml`, reemplaza únicamente la clave de OpenRouter y el token del
+bot. Nunca los pegues en `config.json`, el repositorio o el chat.
+
+Para usar otro proveedor, conserva la estructura de `model_list` y consulta la
+[guía oficial de proveedores de PicoClaw](https://github.com/sipeed/picoclaw/blob/v0.3.1/docs/guides/providers.md).
+
+## 3. Instalar las skills
+
+PicoClaw `0.3.1` instala una skill por comando. Este bloque instala las tres de
+una vez usando la sintaxis nativa:
+
+```bash
+for skill in coding color-sensor led; do
+  picoclaw skills install "the-matter-lab/cdmx-local-ai/skills/$skill"
+done
+picoclaw skills list
+```
+
+Para instalar las tres en `pi` con un solo comando:
+
+```bash
+npx skills add the-matter-lab/cdmx-local-ai \
+  --skill '*' \
+  --agent pi --yes
+```
+
+La herramienta de hardware permanece dentro del clon y no se instala en el
+sistema. Desde `~/workspace/cdmx-local-ai` puedes probarla con:
+
+```bash
+python3 tools/cdmx_hardware.py --help
+```
+
+## 4. Crear el bot de Telegram
+
+1. Habla con [`@BotFather`](https://t.me/BotFather), ejecuta `/newbot` y copia
+   el token en `.security.yml`.
+2. Envía `/start` a tu nuevo bot.
+3. Obtén tu ID numérico con el método oficial
+   [`getUpdates`](https://core.telegram.org/bots/api#getupdates) y escríbelo en
+   `allow_from`.
+
+Una lista vacía permite el acceso a cualquier persona: no la dejes vacía.
+
+## 5. Probar e iniciar el gateway
+
+Primero comprueba el modelo y las tools sin Telegram:
+
+```bash
+picoclaw agent -m "Lista las skills del taller"
+```
+
+Después inicia el gateway en primer plano:
+
+```bash
+picoclaw gateway
+```
+
+Mantén esa terminal abierta y escribe al bot. `Ctrl-C` detiene el gateway; el
+mismo comando lo vuelve a iniciar. Prueba mensajes como:
 
 ```text
 Cambia el LED a morado con brillo 20 %.
 Lee el sensor de color y explícame los valores.
-Revisa los archivos de mi proyecto y ejecuta sus pruebas.
+Revisa cdmx-bayesopt y ejecuta sus pruebas.
 ```
 
-PicoClaw elige automáticamente la skill apropiada. También puedes usar
-`/list skills` y `/use led ...`. Los mismos comandos de hardware funcionan en
-la terminal:
+Usa `/list skills` y `/use led ...` para practicar la sintaxis de skills de
+PicoClaw. `pi` sigue disponible como agente interactivo independiente:
 
 ```bash
-cd /var/lib/cdmx-picoclaw/workspace
-python3 tools/cdmx_hardware.py led '#6633FF' --brightness 0.20
-python3 tools/cdmx_hardware.py sensor
+pi
 ```
 
-## Operación y seguridad
+## Discord
 
-```bash
-sudo systemctl status cdmx-picoclaw.service
-sudo journalctl -u cdmx-picoclaw.service -n 100 --no-pager
-sudo systemctl restart cdmx-picoclaw.service
-```
+PicoClaw también acepta un bloque `channel_list.discord`. Activa **Message
+Content Intent**, coloca los IDs autorizados en `allow_from` y guarda el token
+en `channels.discord.token` dentro de `.security.yml`. Consulta la
+[sintaxis oficial de Discord](https://github.com/sipeed/picoclaw/blob/v0.3.1/docs/channels/discord/README.md).
 
-Solo los IDs incluidos pueden conversar con el bot. El servicio no corre como
-root, solo puede escribir dentro de su espacio compartido y recibe únicamente
-los grupos I²C/SPI necesarios. Las credenciales quedan fuera del espacio del
-agente, en `/etc/cdmx-picoclaw/.security.yml` con modo `0640`. Usa bots y claves
-desechables distintas por equipo. PicoClaw aún es software anterior a v1; no
-lo expongas como servicio público ni lo uses con datos sensibles.
+## Instalación de la imagen
+
+[`device/agent/install-agent.sh`](device/agent/install-agent.sh) es solamente
+para construir la imagen o instalar los binarios en una Radxa preparada. Los
+participantes no lo ejecutan. El instalador no incluye las skills ni las tools;
+el repositorio no incluye claves reales.
 
 ```bash
 make test

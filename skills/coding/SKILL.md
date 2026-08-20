@@ -14,7 +14,7 @@ description: Read, explain, create, modify, test, or debug code in the team's sh
 You may use the bundled hardware CLI from code or tests:
 
 ```bash
-python3 tools/cdmx_hardware.py --help
+python3 "$HOME/workspace/cdmx-local-ai/tools/cdmx_hardware.py" --help
 ```
 
 Do not run `sudo`, modify the operating system/network/services, or claim a

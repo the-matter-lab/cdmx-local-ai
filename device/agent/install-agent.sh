@@ -78,59 +78,36 @@ install -d -m 0755 /opt/cdmx-pi
   "@earendil-works/pi-coding-agent@${PI_CODING_AGENT_VERSION}"
 ln -sfn /opt/cdmx-pi/bin/pi /usr/local/bin/pi
 
-if ! getent group cdmx-agent >/dev/null; then
-  groupadd --system cdmx-agent
+workshop_user="${CDMX_WORKSHOP_USER:-cdmx}"
+if ! id "${workshop_user}" >/dev/null 2>&1; then
+  echo "Workshop user not found: ${workshop_user}" >&2
+  exit 1
 fi
-if ! getent group cdmx-workspace >/dev/null; then
-  groupadd --system cdmx-workspace
-fi
+
 for hardware_group in i2c spi spidev; do
   if ! getent group "$hardware_group" >/dev/null; then
     groupadd --system "$hardware_group"
   fi
 done
-if ! id cdmx-agent >/dev/null 2>&1; then
-  useradd --system --gid cdmx-agent --home-dir /var/lib/cdmx-picoclaw \
-    --create-home --shell /usr/sbin/nologin cdmx-agent
-fi
-usermod --append --groups cdmx-workspace,i2c,spi,spidev cdmx-agent
-# The shared noVNC desktop normally runs as cdmx. Give it workspace access if
-# that account has already been created, without granting access to secrets.
-if id cdmx >/dev/null 2>&1; then
-  usermod --append --groups cdmx-workspace cdmx
-fi
+usermod --append --groups i2c,spi,spidev "${workshop_user}"
 
-install -d -o root -g cdmx-agent -m 0750 /etc/cdmx-picoclaw
-# The desktop user is in cdmx-workspace and needs traverse-only access to reach
-# the shared workspace. It cannot list the agent state directory or read agent
-# files because the group receives execute permission only.
-install -d -o cdmx-agent -g cdmx-workspace -m 0710 /var/lib/cdmx-picoclaw
-install -d -o cdmx-agent -g cdmx-workspace -m 2770 /var/lib/cdmx-picoclaw/workspace
+workshop_home="$(getent passwd "${workshop_user}" | cut -d: -f6)"
+workshop_group="$(id -gn "${workshop_user}")"
+workshop_workspace="${workshop_home}/workspace"
+if [[ -L "${workshop_workspace}" ]]; then
+  workshop_workspace="$(readlink -f "${workshop_workspace}")"
+elif [[ ! -d "${workshop_workspace}" ]]; then
+  install -d -o "${workshop_user}" -g "${workshop_group}" -m 0755 \
+    "${workshop_workspace}"
+fi
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-install -o root -g root -m 0755 "${script_dir}/setup.py" /usr/local/sbin/cdmx-agent-setup
-install -o cdmx-agent -g cdmx-workspace -m 0660 \
-  "${script_dir}/workspace/AGENT.md" /var/lib/cdmx-picoclaw/workspace/AGENT.md
-install -o cdmx-agent -g cdmx-workspace -m 0660 \
-  "${script_dir}/workspace/README.md" /var/lib/cdmx-picoclaw/workspace/README.md
-for skill in coding color-sensor led; do
-  install -d -o cdmx-agent -g cdmx-workspace -m 2770 \
-    "/var/lib/cdmx-picoclaw/workspace/skills/${skill}"
-  install -o cdmx-agent -g cdmx-workspace -m 0660 \
-    "${script_dir}/workspace/skills/${skill}/SKILL.md" \
-    "/var/lib/cdmx-picoclaw/workspace/skills/${skill}/SKILL.md"
-done
-install -d -o cdmx-agent -g cdmx-workspace -m 2770 \
-  /var/lib/cdmx-picoclaw/workspace/tools
-install -o cdmx-agent -g cdmx-workspace -m 0770 \
-  "${script_dir}/workspace/tools/cdmx_hardware.py" \
-  /var/lib/cdmx-picoclaw/workspace/tools/cdmx_hardware.py
-install -o root -g root -m 0644 \
-  "${script_dir}/systemd/cdmx-picoclaw.service" /etc/systemd/system/cdmx-picoclaw.service
-if [[ ${CDMX_OFFLINE_IMAGE:-0} != 1 ]]; then
-  systemctl daemon-reload
-fi
+install -o "${workshop_user}" -g "${workshop_group}" -m 0644 \
+  "${script_dir}/workspace/AGENT.md" "${workshop_workspace}/AGENT.md"
+install -o "${workshop_user}" -g "${workshop_group}" -m 0644 \
+  "${script_dir}/workspace/README.md" "${workshop_workspace}/README.md"
 
 echo
 echo "Installed PicoClaw ${PICOCLAW_VERSION}, Node ${NODE_VERSION}, and Pi ${PI_CODING_AGENT_VERSION}."
-echo "Configure a team's private credentials next: sudo cdmx-agent-setup --help"
+echo "Workshop skills and tools are not preinstalled; each team clones cdmx-local-ai."
+echo "Each team configures its own gateway with: picoclaw onboard"

@@ -5,7 +5,7 @@ import unittest
 from unittest import mock
 
 
-MODULE_PATH = pathlib.Path(__file__).parents[1] / "workspace" / "tools" / "cdmx_hardware.py"
+MODULE_PATH = pathlib.Path(__file__).parents[3] / "tools" / "cdmx_hardware.py"
 SPEC = importlib.util.spec_from_file_location("cdmx_hardware", MODULE_PATH)
 hardware = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader

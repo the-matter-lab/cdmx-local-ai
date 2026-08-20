@@ -8,7 +8,7 @@ description: Read or report the workshop TCS34725 color sensor connected to the 
 Read one fresh sample with:
 
 ```bash
-python3 tools/cdmx_hardware.py sensor
+python3 "$HOME/workspace/cdmx-local-ai/tools/cdmx_hardware.py" sensor
 ```
 
 Report the raw clear/red/green/blue counts as measurements. The normalized RGB

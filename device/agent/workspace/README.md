@@ -8,11 +8,15 @@ Comandos útiles:
 
 ```bash
 pi
-git status
-python3 tools/cdmx_hardware.py led '#6633FF' --brightness 0.25
-python3 tools/cdmx_hardware.py sensor
+picoclaw skills list
+picoclaw agent -m "Lista las skills del taller"
+picoclaw gateway
+git -C "$HOME/workspace/cdmx-local-ai" status
+python3 "$HOME/workspace/cdmx-local-ai/tools/cdmx_hardware.py" led '#6633FF' --brightness 0.25
+python3 "$HOME/workspace/cdmx-local-ai/tools/cdmx_hardware.py" sensor
 ```
 
-En Telegram o Discord usa `/list skills` para ver `led`, `color-sensor` y
-`coding`, o simplemente pide la tarea en lenguaje natural. No guardes aquí
-claves de API ni tokens de bots; se almacenan fuera de este espacio.
+Después de clonar `cdmx-local-ai` e instalar sus skills, usa `/list skills` en
+Telegram o Discord para ver `led`, `color-sensor` y `coding`. No guardes aquí
+claves de API ni tokens de bots; PicoClaw los lee desde
+`~/.picoclaw/.security.yml`.
